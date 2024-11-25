@@ -1,14 +1,12 @@
-import { create } from 'zustand';
+import { RewardInfo } from '@kamino-finance/farms-sdk';
 import { KaminoMarket, KaminoReserve } from '@kamino-finance/klend-sdk';
 import { Connection } from '@solana/web3.js';
-import { getConnection, RpcEndpoint } from '../utils/connection';
-import { getMarket, getReserveRewardsApy, loadReserveData } from '../utils/helpers';
-import { JITO_MARKET, MAIN_MARKET, SOL_MINT, USDS_MINT } from '../utils/constants';
-import { RewardInfo } from '@kamino-finance/farms-sdk';
 import Decimal from 'decimal.js';
+import { create } from 'zustand';
+import { getConnection } from '../utils/connection';
+import { JITO_MARKET, MAIN_MARKET, SOL_MINT, USDS_MINT } from '../utils/constants';
+import { getMarket, getReserveRewardsApy, loadReserveData } from '../utils/helpers';
 import { getJupiterPrices } from '../utils/jupiter';
-import { getEnv } from '@/utils/env';
-import { symbolName } from 'typescript';
 
 interface ReserveApy {
   supplyApy: number;

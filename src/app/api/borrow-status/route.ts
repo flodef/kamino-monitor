@@ -1,4 +1,3 @@
-import { getConnection } from '@/utils/connection';
 import {
   JITO_MARKET,
   JITO_OBLIGATION,
@@ -7,6 +6,7 @@ import {
   USDS_MINT,
 } from '@/utils/constants';
 import { getLoan, getMarket, loadReserveData } from '@/utils/helpers';
+import { Connection } from '@solana/web3.js';
 import { NextResponse } from 'next/server';
 
 type LoanSubInfo = {
@@ -37,9 +37,18 @@ const toRatio = (value: number): string => {
   return `${(value * 100).toFixed(2)}%`;
 };
 
+let serverConnection: Connection | null = null;
+
 export async function GET() {
   try {
-    const connection = getConnection();
+    if (!serverConnection) {
+      const rpcUrl = process.env.HELIUS_RPC_URL;
+      if (!rpcUrl) {
+        throw new Error('HELIUS_RPC_URL not configured');
+      }
+      serverConnection = new Connection(rpcUrl);
+    }
+    const connection = serverConnection;
 
     // Get borrow status
     const { market, reserve } = await loadReserveData({

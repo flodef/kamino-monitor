@@ -1,33 +1,32 @@
-import { getPreferredRpc, getRpcEndpoints, setSelectedRpc } from '@/utils/connection';
-import { useState } from 'react';
+import { RPC_OPTIONS, getPreferredRpc, setPreferredRpc } from '@/utils/connection';
+import { useState, useEffect } from 'react';
 
 export default function RpcSelector() {
-  const availableRpcs = getRpcEndpoints();
-  const selectedRpc = getPreferredRpc();
+  const [selectedRpc, setSelectedRpc] = useState(getPreferredRpc());
 
-  const [currentRpc, setCurrentRpc] = useState(selectedRpc);
-  const onChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedRpc = availableRpcs.find(rpc => rpc.url === e.target.value);
-    if (selectedRpc) {
-      setSelectedRpc(selectedRpc);
-      setCurrentRpc(selectedRpc);
+  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const selected = RPC_OPTIONS.find(rpc => rpc.url === event.target.value);
+    if (selected) {
+      setSelectedRpc(selected);
+      setPreferredRpc(selected);
+      window.location.reload(); // Reload to use new RPC
     }
   };
 
   return (
-    <div className="flex items-center space-x-2">
-      <label htmlFor="rpc-select" className="text-sm font-medium text-gray-400">
-        RPC Endpoint:
+    <div className="flex items-center gap-2">
+      <label htmlFor="rpc-select" className="text-white">
+        RPC:
       </label>
       <select
         id="rpc-select"
-        value={currentRpc.url}
-        onChange={onChange}
-        className="block w-full rounded-md border-gray-300 bg-primary text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+        value={selectedRpc.url}
+        onChange={handleChange}
+        className="bg-primary text-white p-2 rounded-lg border border-gray-700"
       >
-        {availableRpcs.map(rpc => (
+        {RPC_OPTIONS.map(rpc => (
           <option key={rpc.url} value={rpc.url}>
-            {rpc.name}
+            {rpc.label}
           </option>
         ))}
       </select>
