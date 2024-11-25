@@ -7,10 +7,9 @@ import {
   USDS_MINT,
 } from '@/utils/constants';
 import { getLoan, getMarket, loadReserveData } from '@/utils/helpers';
-import { ObligationStats } from '@kamino-finance/klend-sdk';
 import { NextResponse } from 'next/server';
 
-type loanSubInfo = {
+type LoanSubInfo = {
   token: string;
   market: string;
   amount: string;
@@ -22,40 +21,41 @@ type loanSubInfo = {
 type LoanInfo = {
   isLoanUnderwater: boolean;
   loanToValue: string;
-  amounts: loanSubInfo[];
+  amounts: LoanSubInfo[];
 };
 
-const toRatio = (value: number) => {
+type BorrowStatusResponse = {
+  isBuyable: boolean;
+  buyCap: string;
+  loanInfo: LoanInfo[];
+  timestamp: string;
+};
+
+const CACHE_REVALIDATE_SECONDS = 30;
+
+const toRatio = (value: number): string => {
   return `${(value * 100).toFixed(2)}%`;
 };
 
 export async function GET() {
   try {
-    const marketPubkey = MAIN_MARKET;
-    const mintPubkey = USDS_MINT;
-
     const connection = getConnection();
+
+    // Get borrow status
     const { market, reserve } = await loadReserveData({
       connection,
-      marketPubkey,
-      mintPubkey,
+      marketPubkey: MAIN_MARKET,
+      mintPubkey: USDS_MINT,
     });
 
     const { globalDebtCap, globalTotalBorrowed } = reserve.getBorrowCapForReserve(market);
     const isBuyable = globalTotalBorrowed.lt(globalDebtCap);
     const buyCap = globalDebtCap.minus(globalTotalBorrowed).div(reserve.getMintFactor()).toFixed(2);
 
+    // Process all obligations
     const obligations = [
-      {
-        marketPubkey: MAIN_MARKET,
-        symbol: 'MAIN',
-        pubkey: MAIN_OBLIGATION,
-      },
-      {
-        marketPubkey: JITO_MARKET,
-        symbol: 'JITO',
-        pubkey: JITO_OBLIGATION,
-      },
+      { marketPubkey: MAIN_MARKET, symbol: 'MAIN', pubkey: MAIN_OBLIGATION },
+      { marketPubkey: JITO_MARKET, symbol: 'JITO', pubkey: JITO_OBLIGATION },
     ];
 
     const loanInfo: LoanInfo[] = [];
@@ -75,7 +75,7 @@ export async function GET() {
       // General net stats
       if (loan) {
         const currentSlot = await connection.getSlot();
-        const loanStats: ObligationStats = loan.refreshedStats;
+        const loanStats = loan.refreshedStats;
         const isLoanUnderwater = loan.loanToValue().gt(loanStats.borrowLimit);
         const loanToValue = toRatio(loan.loanToValue().toNumber());
         const index =
@@ -117,16 +117,20 @@ export async function GET() {
       }
     }
 
-    const data = {
+    const response: BorrowStatusResponse = {
       isBuyable,
       buyCap,
       loanInfo,
       timestamp: new Date().toISOString(),
     };
 
-    return NextResponse.json(data);
+    return NextResponse.json(response, {
+      headers: {
+        'Cache-Control': `s-maxage=${CACHE_REVALIDATE_SECONDS}`,
+      },
+    });
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error in borrow status API:', error);
     return NextResponse.json({ error: 'Failed to fetch borrow status' }, { status: 500 });
   }
 }
