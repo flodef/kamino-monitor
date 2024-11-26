@@ -1,10 +1,10 @@
-import { loadReserveData } from '../src/utils/helpers';
 import { getConnection } from '../src/utils/connection';
-import { JITO_MARKET, MAIN_MARKET, PYUSD_MINT, SOL_MINT, USDS_MINT } from '../src/utils/constants';
+import { MARKETS, TOKENS } from '../src/utils/constants';
+import { loadReserveData } from '../src/utils/helpers';
 
 (async () => {
-  const marketPubKey = JITO_MARKET;
-  const mintPubKey = SOL_MINT;
+  const marketPubKey = MARKETS.JITO.pubkey;
+  const mintPubKey = TOKENS.SOL.pubkey;
 
   const connection = getConnection();
   console.log(

@@ -12,6 +12,8 @@ import { Scope } from '@kamino-finance/scope-sdk';
 import { Connection, Keypair, PublicKey, TransactionInstruction } from '@solana/web3.js';
 import Decimal from 'decimal.js';
 import { LoanArgs, MarketArgs, ReserveArgs } from './models';
+import { MARKETS, TOKENS } from './constants';
+import { formatDistanceToNow } from 'date-fns';
 
 /**
  * Get Kamino Lending Market
@@ -147,4 +149,33 @@ export async function executeUserSetupLutsTransactions(
     const txHash = await buildAndSendTxn(connection, wallet, setupIxnsGroup, [], []);
     console.log('txHash', txHash);
   }
+}
+
+export function toValue(value: Decimal, reserve: KaminoReserve): string {
+  return value.div(reserve.getMintFactor()).toFixed(2);
+}
+
+export function toRatio(value: number): string {
+  return `${(value * 100).toFixed(2)}%`;
+}
+
+export function getMarketName(marketPubkey: string): string {
+  return (
+    Object.values(MARKETS).find(market => market.pubkey.toString() === marketPubkey)?.label ||
+    marketPubkey
+  );
+}
+
+export function getTokenName(mintPubkey: string): string {
+  return (
+    Object.values(TOKENS).find(token => token.pubkey.toString() === mintPubkey)?.label || mintPubkey
+  );
+}
+
+export function getTimeAgo(timestamp: number): string {
+  const diffInSeconds = Math.floor((Date.now() - timestamp) / 1000);
+  if (diffInSeconds < 60) {
+    return `${diffInSeconds} seconds ago`;
+  }
+  return formatDistanceToNow(timestamp, { addSuffix: true });
 }

@@ -16,11 +16,16 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
+    "@emotion/react": "^11.13.5",
+    "@emotion/styled": "^11.13.5",
     "@kamino-finance/klend-sdk": "latest",
+    "@mui/icons-material": "^6.1.8",
+    "@mui/material": "^6.1.8",
     "@solana/web3.js": "^1.95.5",
     "autoprefixer": "^10.4.20",
     "browserify-zlib": "^0.2.0",
     "crypto-browserify": "^3.12.1",
+    "date-fns": "^4.1.0",
     "next": "latest",
     "path-browserify": "^1.0.1",
     "postcss": "^8.4.49",

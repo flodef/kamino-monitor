@@ -1,11 +1,11 @@
 import { KaminoObligation, ObligationStats } from '@kamino-finance/klend-sdk';
 import { getConnection } from '../src/utils/connection';
-import { MAIN_MARKET, MAIN_OBLIGATION, USDS_MINT } from '../src/utils/constants';
+import { MARKETS, OBLIGATIONS } from '../src/utils/constants';
 import { getLoan, getMarket } from '../src/utils/helpers';
 
 (async () => {
-  const marketPubkey = MAIN_MARKET;
-  const obligationPubkey = MAIN_OBLIGATION;
+  const marketPubkey = MARKETS.MAIN.pubkey;
+  const obligationPubkey = OBLIGATIONS.MAIN.pubkey;
 
   const connection = getConnection();
   console.log('fetching loan:', obligationPubkey.toString(), 'in market:', marketPubkey.toString());

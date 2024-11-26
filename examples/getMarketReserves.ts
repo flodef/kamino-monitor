@@ -1,13 +1,14 @@
 import { getConnection } from '../src/utils/connection';
-import { MAIN_MARKET } from '../src/utils/constants';
+import { MARKETS } from '../src/utils/constants';
 import { getMarket } from '../src/utils/helpers';
 
 (async () => {
+  const marketPubkey = MARKETS.MAIN.pubkey;
   const connection = getConnection();
-  const market = await getMarket({ connection, marketPubkey: MAIN_MARKET });
+  const market = await getMarket({ connection, marketPubkey });
   const reserves = market.getReserves();
   console.log(
-    `found market ${MAIN_MARKET.toString()} reserves:\n\n${reserves.map(x => x.address.toString()).join('\n')}`
+    `found market ${marketPubkey.toString()} reserves:\n\n${reserves.map(x => x.address.toString()).join('\n')}`
   );
 
   console.log('Reserve supply and borrow APYs:\n');

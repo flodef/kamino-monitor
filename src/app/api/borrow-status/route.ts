@@ -1,135 +1,65 @@
-import {
-  JITO_MARKET,
-  JITO_OBLIGATION,
-  MAIN_MARKET,
-  MAIN_OBLIGATION,
-  USDS_MINT,
-} from '@/utils/constants';
-import { getLoan, getMarket, loadReserveData } from '@/utils/helpers';
-import { Connection } from '@solana/web3.js';
+import { loadReserveData, toValue } from '@/utils/helpers';
+import { Connection, PublicKey } from '@solana/web3.js';
 import { NextResponse } from 'next/server';
 
-type LoanSubInfo = {
-  token: string;
-  market: string;
-  amount: string;
-  apy: string;
-  apr: string;
-  direction: 'supply' | 'borrow';
-};
-
-type LoanInfo = {
-  isLoanUnderwater: boolean;
-  loanToValue: string;
-  amounts: LoanSubInfo[];
-};
-
-type BorrowStatusResponse = {
+export type BorrowStatusResponse = {
   isBuyable: boolean;
   buyCap: string;
-  loanInfo: LoanInfo[];
   timestamp: string;
 };
 
 const CACHE_REVALIDATE_SECONDS = 30;
 
-const toRatio = (value: number): string => {
-  return `${(value * 100).toFixed(2)}%`;
-};
+let connection: Connection | null = null;
 
-let serverConnection: Connection | null = null;
-
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    if (!serverConnection) {
-      const rpcUrl = process.env.HELIUS_RPC_URL;
-      if (!rpcUrl) {
-        throw new Error('HELIUS_RPC_URL not configured');
-      }
-      serverConnection = new Connection(rpcUrl);
+    // Get URL parameters
+    const { searchParams } = new URL(request.url);
+    const market = searchParams.get('market');
+    const mint = searchParams.get('mint');
+
+    if (!market || !mint) {
+      return NextResponse.json(
+        { error: 'Missing required parameters: market and mint' },
+        { status: 400 }
+      );
     }
-    const connection = serverConnection;
+
+    // Get connection from connection API
+    if (!connection) {
+      const response = await fetch('http://localhost:3000/api/connection', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rpcLabel: 'Helius' }), // Default to Helius
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get connection from connection API');
+      }
+
+      const data = await response.json();
+      if (!data.rpcEndpoint) {
+        throw new Error('Invalid connection from connection API');
+      }
+
+      connection = new Connection(data.rpcEndpoint);
+    }
 
     // Get borrow status
-    const { market, reserve } = await loadReserveData({
+    const { market: marketData, reserve } = await loadReserveData({
       connection,
-      marketPubkey: MAIN_MARKET,
-      mintPubkey: USDS_MINT,
+      marketPubkey: new PublicKey(market),
+      mintPubkey: new PublicKey(mint),
     });
 
-    const { globalDebtCap, globalTotalBorrowed } = reserve.getBorrowCapForReserve(market);
+    const { globalDebtCap, globalTotalBorrowed } = reserve.getBorrowCapForReserve(marketData);
     const isBuyable = globalTotalBorrowed.lt(globalDebtCap);
-    const buyCap = globalDebtCap.minus(globalTotalBorrowed).div(reserve.getMintFactor()).toFixed(2);
-
-    // Process all obligations
-    const obligations = [
-      { marketPubkey: MAIN_MARKET, symbol: 'MAIN', pubkey: MAIN_OBLIGATION },
-      { marketPubkey: JITO_MARKET, symbol: 'JITO', pubkey: JITO_OBLIGATION },
-    ];
-
-    const loanInfo: LoanInfo[] = [];
-    for (const { marketPubkey, symbol, pubkey } of obligations) {
-      const marketName = symbol;
-      const obligationPubkey = pubkey;
-
-      const args = {
-        connection,
-        marketPubkey,
-        obligationPubkey,
-      };
-
-      const market = await getMarket(args);
-      const loan = await getLoan(args);
-
-      // General net stats
-      if (loan) {
-        const currentSlot = await connection.getSlot();
-        const loanStats = loan.refreshedStats;
-        const isLoanUnderwater = loan.loanToValue().gt(loanStats.borrowLimit);
-        const loanToValue = toRatio(loan.loanToValue().toNumber());
-        const index =
-          loanInfo.push({
-            isLoanUnderwater,
-            loanToValue,
-            amounts: [],
-          }) - 1;
-        loan.deposits.forEach(deposit => {
-          const reserve = market.getReserveByMint(deposit.mintAddress);
-          if (!reserve) return;
-
-          const decimals = reserve!.getMintFactor();
-          loanInfo[index].amounts.push({
-            token: reserve.symbol,
-            market: marketName,
-            amount: deposit.amount.div(decimals).toFixed(2),
-            apy: toRatio(reserve.totalSupplyAPY(currentSlot)),
-            apr: toRatio(reserve.calculateSupplyAPR(currentSlot, market.state.referralFeeBps)),
-            direction: 'supply',
-          });
-        });
-
-        // Print all borrows
-        loan.borrows.forEach(borrow => {
-          const reserve = market.getReserveByMint(borrow.mintAddress);
-          if (!reserve) return;
-
-          const decimals = reserve!.getMintFactor();
-          loanInfo[index].amounts.push({
-            token: reserve.symbol,
-            market: marketName,
-            amount: borrow.amount.div(decimals).toFixed(2),
-            apy: toRatio(reserve.totalBorrowAPY(currentSlot)),
-            apr: toRatio(reserve.calculateBorrowAPR(currentSlot, market.state.referralFeeBps)),
-            direction: 'borrow',
-          });
-        });
-      }
-    }
+    const buyCap = toValue(globalDebtCap.minus(globalTotalBorrowed), reserve);
 
     const response: BorrowStatusResponse = {
       isBuyable,
       buyCap,
-      loanInfo,
       timestamp: new Date().toISOString(),
     };
 

@@ -1,10 +1,10 @@
 import { getConnection } from '../src/utils/connection';
-import { MAIN_MARKET, USDS_MINT } from '../src/utils/constants';
+import { MARKETS, TOKENS } from '../src/utils/constants';
 import { loadReserveData } from '../src/utils/helpers';
 
 (async () => {
-  const marketPubkey = MAIN_MARKET;
-  const mintPubkey = USDS_MINT;
+  const marketPubkey = MARKETS.MAIN.pubkey;
+  const mintPubkey = TOKENS.USDS.pubkey;
 
   const connection = getConnection();
   console.log(

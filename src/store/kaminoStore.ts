@@ -4,7 +4,7 @@ import { Connection } from '@solana/web3.js';
 import Decimal from 'decimal.js';
 import { create } from 'zustand';
 import { getConnection } from '../utils/connection';
-import { JITO_MARKET, MAIN_MARKET, SOL_MINT, USDS_MINT } from '../utils/constants';
+import { MARKETS, TOKENS } from '../utils/constants';
 import { getMarket, getReserveRewardsApy, loadReserveData } from '../utils/helpers';
 import { getJupiterPrices } from '../utils/jupiter';
 
@@ -60,7 +60,7 @@ export const useKaminoStore = create<KaminoState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       const connection = getConnection();
-      const market = await getMarket({ connection, marketPubkey: MAIN_MARKET });
+      const market = await getMarket({ connection, marketPubkey: MARKETS.MAIN.pubkey });
 
       set({
         market,
@@ -91,7 +91,7 @@ export const useKaminoStore = create<KaminoState>((set, get) => ({
       set({ isLoading: true, error: null });
       const reserves = market.getReserves();
       console.log(
-        `found market ${MAIN_MARKET.toString()} reserves:\n\n${reserves.map(x => x.symbol + ': ' + x.address.toString()).join('\n')}`
+        `found market ${MARKETS.MAIN.pubkey.toString()} reserves:\n\n${reserves.map(x => x.symbol + ': ' + x.address.toString()).join('\n')}`
       );
 
       const newReserves: { [key: string]: ReserveData } = {};
@@ -99,20 +99,20 @@ export const useKaminoStore = create<KaminoState>((set, get) => ({
 
       const tokens = [
         {
-          mintPubkey: SOL_MINT,
-          marketPubkey: MAIN_MARKET,
+          mintPubkey: TOKENS.SOL.pubkey,
+          marketPubkey: MARKETS.MAIN.pubkey,
           hasReward: false,
           market: 'MAIN',
         },
         {
-          mintPubkey: USDS_MINT,
-          marketPubkey: MAIN_MARKET,
+          mintPubkey: TOKENS.USDS.pubkey,
+          marketPubkey: MARKETS.MAIN.pubkey,
           hasReward: false,
           market: 'MAIN',
         },
         {
-          mintPubkey: SOL_MINT,
-          marketPubkey: JITO_MARKET,
+          mintPubkey: TOKENS.SOL.pubkey,
+          marketPubkey: MARKETS.JITO.pubkey,
           hasReward: true,
           market: 'JITO',
         },

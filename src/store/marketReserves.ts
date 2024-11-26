@@ -1,8 +1,8 @@
-import { create } from 'zustand';
 import { KaminoMarket, KaminoReserve } from '@kamino-finance/klend-sdk';
+import { create } from 'zustand';
 import { getConnection } from '../utils/connection';
+import { MARKETS, TOKENS } from '../utils/constants';
 import { getMarket } from '../utils/helpers';
-import { MAIN_MARKET, USDC_MINT, SOL_MINT, USDS_MINT } from '../utils/constants';
 
 interface MarketReservesState {
   market: KaminoMarket | null;
@@ -28,18 +28,17 @@ export const useMarketReserves = create<MarketReservesState>((set, get) => ({
   fetchReserves: async () => {
     try {
       set({ loading: true, error: null });
-      
+
       const connection = getConnection();
-      const market = await getMarket({ connection, marketPubkey: MAIN_MARKET });
-      
+      const market = await getMarket({ connection, marketPubkey: MARKETS.MAIN.pubkey });
+
       const reserves = market.getReserves();
-      const currentSlot = await connection.getSlot();
-      
+
       // Find our specific reserves
-      const usdcReserve = reserves.find(r => r.stats.mintAddress.equals(USDC_MINT));
-      const solReserve = reserves.find(r => r.stats.mintAddress.equals(SOL_MINT));
-      const usdsReserve = reserves.find(r => r.stats.mintAddress.equals(USDS_MINT));
-      
+      const usdcReserve = reserves.find(r => r.stats.mintAddress.equals(TOKENS.USDC.pubkey));
+      const solReserve = reserves.find(r => r.stats.mintAddress.equals(TOKENS.SOL.pubkey));
+      const usdsReserve = reserves.find(r => r.stats.mintAddress.equals(TOKENS.USDS.pubkey));
+
       set({
         market,
         reserves: {
@@ -51,9 +50,9 @@ export const useMarketReserves = create<MarketReservesState>((set, get) => ({
       });
     } catch (error) {
       console.error('Error fetching reserves:', error);
-      set({ 
+      set({
         error: error instanceof Error ? error.message : 'Failed to fetch reserves',
-        loading: false 
+        loading: false,
       });
     }
   },

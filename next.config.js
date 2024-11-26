@@ -13,12 +13,6 @@ const nextConfig = {
     };
     return config;
   },
-  env: {
-    NEXT_PUBLIC_HELIUS_RPC_URL: process.env.NEXT_PUBLIC_HELIUS_RPC_URL,
-    NEXT_PUBLIC_QUICKNODE_RPC_URL: process.env.NEXT_PUBLIC_QUICKNODE_RPC_URL,
-    NEXT_PUBLIC_ANKR_RPC_URL: process.env.NEXT_PUBLIC_ANKR_RPC_URL,
-    NEXT_PUBLIC_SOLANA_RPC_URL: process.env.NEXT_PUBLIC_SOLANA_RPC_URL,
-  },
 };
 
 module.exports = nextConfig;
