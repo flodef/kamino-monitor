@@ -1,4 +1,4 @@
-import { LoanInfo, LoanStatusResponse } from '@/app/api/loan-status/route';
+import { LoanStatusResponse } from '@/app/api/loan-status/route';
 import { useMonitorStore } from '@/store/monitorStore';
 import { useEffect, useState } from 'react';
 import CloseButton from './CloseButton';
@@ -28,7 +28,7 @@ export default function LoanStatusSection({
       setStatus(data);
 
       // Check for underwater loans
-      data.loanInfo.forEach((loan: LoanInfo) => {
+      data.loanInfo.forEach((loan: LoanStatusResponse) => {
         if (loan.isUnderwater) {
           addNotification(
             `Loan is underwater in market ${loan.marketName} with LTV ${loan.loanToValue}`
@@ -52,8 +52,8 @@ export default function LoanStatusSection({
         <h3 className="text-xl font-semibold text-white">Loan Status</h3>
         <CloseButton onClick={onRemove} />
       </div>
-      {status?.loanInfo.map((loan, index) => (
-        <div key={index} className="mb-6 last:mb-0">
+      {status && (
+        <div className="mb-6 last:mb-0">
           <div className="space-y-2 mb-4">
             <div className="flex justify-between">
               <span className="text-gray-400">Market</span>
@@ -65,8 +65,8 @@ export default function LoanStatusSection({
             </div>
             <div className="flex justify-between">
               <span className="text-gray-400">Loan to Value</span>
-              <span className={loan.isUnderwater ? 'text-red-400' : 'text-green-400'}>
-                {loan.loanToValue}
+              <span className={status.isUnderwater ? 'text-red-400' : 'text-green-400'}>
+                {status.loanToValue}
               </span>
             </div>
           </div>
@@ -76,7 +76,7 @@ export default function LoanStatusSection({
             <div>
               <h4 className="text-lg font-medium text-white mb-2">Deposits</h4>
               <div className="space-y-2">
-                {loan.amounts
+                {status.amounts
                   .filter(amount => amount.direction === 'supply')
                   .map((amount, i) => (
                     <div key={i} className="bg-secondary rounded p-3">
@@ -98,7 +98,7 @@ export default function LoanStatusSection({
             <div>
               <h4 className="text-lg font-medium text-white mb-2">Borrows</h4>
               <div className="space-y-2">
-                {loan.amounts
+                {status.amounts
                   .filter(amount => amount.direction === 'borrow')
                   .map((amount, i) => (
                     <div key={i} className="bg-secondary rounded p-3">
@@ -118,7 +118,7 @@ export default function LoanStatusSection({
             </div>
           </div>
         </div>
-      ))}
+      )}
       {!status && <div className="text-center py-4 text-gray-400">Loading...</div>}
     </div>
   );

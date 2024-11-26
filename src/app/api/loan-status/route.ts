@@ -4,7 +4,7 @@ import { getLoan, getMarket, getMarketName, toRatio, toValue } from '@/utils/hel
 import { Connection, PublicKey } from '@solana/web3.js';
 import { NextResponse } from 'next/server';
 
-export type LoanSubInfo = {
+export type LoanAmounts = {
   token: string;
   amount: string;
   apy: string;
@@ -12,16 +12,12 @@ export type LoanSubInfo = {
   direction: 'supply' | 'borrow';
 };
 
-export type LoanInfo = {
+export type LoanStatusResponse = {
   isUnderwater: boolean;
   loanToValue: string;
   marketName: string;
-  amounts: LoanSubInfo[];
-};
-
-export type LoanStatusResponse = {
-  loanInfo: LoanInfo[];
   timestamp: string;
+  amounts: LoanAmounts[];
 };
 
 let connection: Connection | null = null;
@@ -74,51 +70,48 @@ export async function GET(request: Request) {
     const marketData = await getMarket(args);
     const loan = await getLoan(args);
 
-    const loanInfo: LoanInfo[] = [];
-
-    // Process loan data if it exists
-    if (loan) {
-      const currentSlot = await connection.getSlot();
-      const loanStats = loan.refreshedStats;
-      const isUnderwater = loan.loanToValue().gt(loanStats.borrowLimit);
-      const loanToValue = toRatio(loan.loanToValue().toNumber());
-      const index =
-        loanInfo.push({
-          isUnderwater,
-          loanToValue,
-          marketName,
-          amounts: [],
-        }) - 1;
-
-      loan.deposits.forEach(deposit => {
-        const reserve = marketData.getReserveByMint(deposit.mintAddress);
-        if (!reserve) return;
-
-        loanInfo[index].amounts.push({
-          token: reserve.symbol,
-          amount: toValue(deposit.amount, reserve),
-          apy: toRatio(reserve.totalSupplyAPY(currentSlot)),
-          apr: toRatio(reserve.calculateSupplyAPR(currentSlot, marketData.state.referralFeeBps)),
-          direction: 'supply',
-        });
-      });
-
-      loan.borrows.forEach(borrow => {
-        const reserve = marketData.getReserveByMint(borrow.mintAddress);
-        if (!reserve) return;
-
-        loanInfo[index].amounts.push({
-          token: reserve.symbol,
-          amount: toValue(borrow.amount, reserve),
-          apy: toRatio(reserve.totalBorrowAPY(currentSlot)),
-          apr: toRatio(reserve.calculateBorrowAPR(currentSlot, marketData.state.referralFeeBps)),
-          direction: 'borrow',
-        });
-      });
+    if (!loan) {
+      return NextResponse.json({ error: 'Loan not found' }, { status: 404 });
     }
 
+    // Process loan data if it exists
+    const currentSlot = await connection.getSlot();
+    const loanStats = loan.refreshedStats;
+    const isUnderwater = loan.loanToValue().gt(loanStats.borrowLimit);
+    const loanToValue = toRatio(loan.loanToValue().toNumber());
+    const amounts: LoanAmounts[] = [];
+
+    loan.deposits.forEach(deposit => {
+      const reserve = marketData.getReserveByMint(deposit.mintAddress);
+      if (!reserve) return;
+
+      amounts.push({
+        token: reserve.symbol,
+        amount: toValue(deposit.amount, reserve),
+        apy: toRatio(reserve.totalSupplyAPY(currentSlot)),
+        apr: toRatio(reserve.calculateSupplyAPR(currentSlot, marketData.state.referralFeeBps)),
+        direction: 'supply',
+      });
+    });
+
+    loan.borrows.forEach(borrow => {
+      const reserve = marketData.getReserveByMint(borrow.mintAddress);
+      if (!reserve) return;
+
+      amounts.push({
+        token: reserve.symbol,
+        amount: toValue(borrow.amount, reserve),
+        apy: toRatio(reserve.totalBorrowAPY(currentSlot)),
+        apr: toRatio(reserve.calculateBorrowAPR(currentSlot, marketData.state.referralFeeBps)),
+        direction: 'borrow',
+      });
+    });
+
     const response: LoanStatusResponse = {
-      loanInfo,
+      isUnderwater,
+      loanToValue,
+      marketName,
+      amounts,
       timestamp: new Date().toISOString(),
     };
 
