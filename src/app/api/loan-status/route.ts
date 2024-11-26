@@ -111,8 +111,8 @@ export async function GET(request: Request) {
       isUnderwater,
       loanToValue,
       marketName,
-      amounts,
       timestamp: new Date().toISOString(),
+      amounts,
     };
 
     return NextResponse.json(response, {
