@@ -1,7 +1,6 @@
 import { useMonitorStore } from '@/store/monitorStore';
 import { MARKET_OPTIONS, MARKETS, MINT_OPTIONS, OBLIGATION_OPTIONS } from '@/utils/constants';
 import {
-  getAvailableMarketForObligation,
   getAvailableMarketsForToken,
   getAvailableObligationsForMarket,
   getAvailableTokensForMarket,

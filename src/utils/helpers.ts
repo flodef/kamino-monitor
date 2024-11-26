@@ -10,11 +10,10 @@ import {
 import { aprToApy, KaminoPrices } from '@kamino-finance/kliquidity-sdk';
 import { Scope } from '@kamino-finance/scope-sdk';
 import { Connection, Keypair, PublicKey, TransactionInstruction } from '@solana/web3.js';
-import Decimal from 'decimal.js';
-import { LoanArgs, MarketArgs, ReserveArgs } from './models';
-import { MARKETS, OBLIGATIONS, TOKENS } from './constants';
 import { formatDistanceToNow } from 'date-fns';
-import { get } from 'http';
+import Decimal from 'decimal.js';
+import { MARKETS, OBLIGATIONS, TOKENS } from './constants';
+import { LoanArgs, MarketArgs, ReserveArgs } from './models';
 
 /**
  * Get Kamino Lending Market
