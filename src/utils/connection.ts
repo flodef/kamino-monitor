@@ -1,6 +1,5 @@
 import { Connection } from '@solana/web3.js';
 import { DEFAULT_RPC, PREFERRED_RPC_KEY } from './constants';
-import { getEnv } from './env';
 
 let connection: Connection | null = null;
 

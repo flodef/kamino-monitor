@@ -228,7 +228,7 @@ export const useKaminoStore = create<KaminoState>((set, get) => ({
   checkBorrowCapacity: () => {
     const { reserves } = get();
     const borrowableReserves = Object.entries(reserves)
-      .filter(([_, data]) => data.currentBorrowCapacity > 0)
+      .filter(reserve => reserve[1].currentBorrowCapacity > 0)
       .map(([symbol]) => symbol);
 
     if (borrowableReserves.length > 0) {

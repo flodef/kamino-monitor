@@ -25,7 +25,7 @@ export const MARKETS: Record<string, Market> = {
 } as const;
 
 // Token Mints
-type Token = {
+export type Token = {
   pubkey: PublicKey;
   label: string;
   id: string;

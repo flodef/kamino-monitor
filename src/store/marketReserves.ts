@@ -16,7 +16,7 @@ interface MarketReservesState {
   fetchReserves: () => Promise<void>;
 }
 
-export const useMarketReserves = create<MarketReservesState>((set, get) => ({
+export const useMarketReserves = create<MarketReservesState>(set => ({
   market: null,
   reserves: {
     USDC: null,

@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { getEnv } from '@/utils/env';
 import { DEFAULT_RPC } from '@/utils/constants';
 
-let connections: { [key: string]: Connection } = {};
+const connections: { [key: string]: Connection } = {};
 
 function getRpcUrl(label: string): string {
   switch (label) {

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { Token } from '@/utils/constants';
 
 async function fetchJupiterPrices(mints: string[]) {
   try {
@@ -33,7 +34,7 @@ export async function POST(request: Request) {
     const timestamp = Date.now();
 
     // Get all mint addresses for batch Jupiter request
-    const mints = tokens.map((config: any) => config.mint?.toString()).filter(Boolean);
+    const mints = tokens.map((config: Token) => config.pubkey.toString()).filter(Boolean);
 
     // Fetch all prices from Jupiter at once
     const jupiterPrices = await fetchJupiterPrices(mints);
@@ -42,7 +43,7 @@ export async function POST(request: Request) {
     for (const config of tokens) {
       try {
         // Try Jupiter price first
-        const jupiterPrice = jupiterPrices[config.mint];
+        const jupiterPrice = jupiterPrices[config.pubkey];
         if (jupiterPrice) {
           prices[config.id] = {
             price: parseFloat(jupiterPrice.price),
