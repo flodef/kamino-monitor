@@ -1,8 +1,7 @@
+import { LoanInfo, LoanStatusResponse } from '@/app/api/loan-status/route';
 import { useMonitorStore } from '@/store/monitorStore';
 import { useEffect, useState } from 'react';
 import CloseButton from './CloseButton';
-import { NotificationManager } from './NotificationManager';
-import { LoanInfo, LoanStatusResponse } from '@/app/api/loan-status/route';
 
 export default function LoanStatusSection({
   market,
@@ -14,7 +13,6 @@ export default function LoanStatusSection({
   onRemove: () => void;
 }) {
   const [status, setStatus] = useState<LoanStatusResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const { addNotification } = useMonitorStore();
 
   const fetchStatus = async () => {
@@ -28,7 +26,6 @@ export default function LoanStatusSection({
 
       const data = await response.json();
       setStatus(data);
-      setError(null);
 
       // Check for underwater loans
       data.loanInfo.forEach((loan: LoanInfo) => {
@@ -38,8 +35,7 @@ export default function LoanStatusSection({
           );
         }
       });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+    } catch {
       setStatus(null);
     }
   };
@@ -50,21 +46,9 @@ export default function LoanStatusSection({
     return () => clearInterval(interval);
   }, [market, obligation]);
 
-  if (error) {
-    return (
-      <div className="bg-red-500/20 rounded-lg p-6">
-        <div className="flex justify-between items-start mb-4">
-          <h3 className="text-xl font-semibold text-white">Loan Status Error</h3>
-          <CloseButton onClick={onRemove} />
-        </div>
-        <p className="text-red-400">{error}</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="bg-primary rounded-lg p-6">
-      <div className="flex justify-between items-start mb-4">
+    <div className="bg-primary rounded-lg p-6 h-full">
+      <div className="flex justify-between items-start mb-7">
         <h3 className="text-xl font-semibold text-white">Loan Status</h3>
         <CloseButton onClick={onRemove} />
       </div>

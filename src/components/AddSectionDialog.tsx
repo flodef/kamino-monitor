@@ -1,5 +1,11 @@
 import { useMonitorStore } from '@/store/monitorStore';
-import { MARKET_OPTIONS, MINT_OPTIONS, OBLIGATION_OPTIONS } from '@/utils/constants';
+import { MARKET_OPTIONS, MARKETS, MINT_OPTIONS, OBLIGATION_OPTIONS } from '@/utils/constants';
+import {
+  getAvailableMarketForObligation,
+  getAvailableMarketsForToken,
+  getAvailableObligationsForMarket,
+  getAvailableTokensForMarket,
+} from '@/utils/helpers';
 import { useState } from 'react';
 import CloseButton from './CloseButton';
 
@@ -13,9 +19,9 @@ export default function AddSectionDialog({ onClose }: { onClose: () => void }) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (type === 'borrow') {
-      addSection(type, market, mint);
+      addSection({ type, market, publicKey: mint });
     } else {
-      addSection(type, market, obligation);
+      addSection({ type, market, publicKey: obligation });
     }
     onClose();
   };
@@ -48,11 +54,17 @@ export default function AddSectionDialog({ onClose }: { onClose: () => void }) {
               onChange={e => setMarket(e.target.value)}
               className="w-full bg-secondary text-white rounded p-2"
             >
-              {MARKET_OPTIONS.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
+              {type === 'borrow'
+                ? getAvailableMarketsForToken(mint).map(option => (
+                    <option key={option} value={MARKETS[option].pubkey.toString()}>
+                      {MARKETS[option].label}
+                    </option>
+                  ))
+                : Object.keys(MARKETS).map(option => (
+                    <option key={option} value={MARKETS[option].pubkey.toString()}>
+                      {MARKETS[option].label}
+                    </option>
+                  ))}
             </select>
           </div>
 
@@ -64,9 +76,9 @@ export default function AddSectionDialog({ onClose }: { onClose: () => void }) {
                 onChange={e => setMint(e.target.value)}
                 className="w-full bg-secondary text-white rounded p-2"
               >
-                {MINT_OPTIONS.map(option => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
+                {getAvailableTokensForMarket(market).map(token => (
+                  <option key={token.pubkey.toString()} value={token.pubkey.toString()}>
+                    {token.label}
                   </option>
                 ))}
               </select>
@@ -79,9 +91,9 @@ export default function AddSectionDialog({ onClose }: { onClose: () => void }) {
                 onChange={e => setObligation(e.target.value)}
                 className="w-full bg-secondary text-white rounded p-2"
               >
-                {OBLIGATION_OPTIONS.filter(option => option.market === market).map(option => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
+                {getAvailableObligationsForMarket(market).map(obligation => (
+                  <option key={obligation.pubkey.toString()} value={obligation.pubkey.toString()}>
+                    {obligation.label}
                   </option>
                 ))}
               </select>

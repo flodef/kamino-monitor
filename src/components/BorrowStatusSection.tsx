@@ -1,10 +1,10 @@
 import { BorrowStatusResponse } from '@/app/api/borrow-status/route';
 import { useMonitorStore } from '@/store/monitorStore';
+import { STATUS_REFRESH_INTERVAL } from '@/utils/constants';
 import { getMarketName, getTokenName } from '@/utils/helpers';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import CloseButton from './CloseButton';
 import FreshnessIndicator from './FreshnessIndicator';
-import { STATUS_REFRESH_INTERVAL } from '@/utils/constants';
 
 export default function BorrowStatusSection({
   market,
@@ -16,7 +16,6 @@ export default function BorrowStatusSection({
   onRemove: () => void;
 }) {
   const [status, setStatus] = useState<BorrowStatusResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const { addNotification } = useMonitorStore();
 
   const marketName = getMarketName(market);
@@ -31,14 +30,12 @@ export default function BorrowStatusSection({
 
       const data = await response.json();
       setStatus(data);
-      setError(null);
 
       // Check for underwater loans
       if (data.isBuyable) {
         addNotification(`${data.buyCap} ${getTokenName(mint)} are buyable in market ${marketName}`);
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+    } catch {
       setStatus(null);
     }
   };
@@ -50,8 +47,8 @@ export default function BorrowStatusSection({
   }, [market, mint]);
 
   return (
-    <div className="bg-primary rounded-lg p-6">
-      <div className="flex justify-between items-start mb-4">
+    <div className="bg-primary rounded-lg p-6 h-full">
+      <div className="flex justify-between items-start mb-7">
         <div className="flex flex-row items-center gap-4">
           <h3 className="text-xl font-semibold text-white">Borrow Status</h3>
           {status && (

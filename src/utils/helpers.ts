@@ -12,8 +12,9 @@ import { Scope } from '@kamino-finance/scope-sdk';
 import { Connection, Keypair, PublicKey, TransactionInstruction } from '@solana/web3.js';
 import Decimal from 'decimal.js';
 import { LoanArgs, MarketArgs, ReserveArgs } from './models';
-import { MARKETS, TOKENS } from './constants';
+import { MARKETS, OBLIGATIONS, TOKENS } from './constants';
 import { formatDistanceToNow } from 'date-fns';
+import { get } from 'http';
 
 /**
  * Get Kamino Lending Market
@@ -154,22 +155,44 @@ export async function executeUserSetupLutsTransactions(
 export function toValue(value: Decimal, reserve: KaminoReserve): string {
   return value.div(reserve.getMintFactor()).toFixed(2);
 }
-
 export function toRatio(value: number): string {
   return `${(value * 100).toFixed(2)}%`;
 }
 
+export function getMarketId(marketPubkey: string): string {
+  return (
+    Object.entries(MARKETS).find(entry => entry[1].pubkey.toString() === marketPubkey)?.[0] ||
+    marketPubkey
+  );
+}
 export function getMarketName(marketPubkey: string): string {
   return (
     Object.values(MARKETS).find(market => market.pubkey.toString() === marketPubkey)?.label ||
     marketPubkey
   );
 }
-
 export function getTokenName(mintPubkey: string): string {
   return (
     Object.values(TOKENS).find(token => token.pubkey.toString() === mintPubkey)?.label || mintPubkey
   );
+}
+
+export function getAvailableTokensForMarket(market: keyof typeof MARKETS) {
+  console.log(getMarketName(market));
+  return Object.values(TOKENS).filter(token => token.market.includes(getMarketId(market)));
+}
+export function getAvailableMarketsForToken(token: keyof typeof TOKENS) {
+  return (
+    Object.values(TOKENS).find(t => t.pubkey.toString() === token)?.market || Object.keys(MARKETS)
+  );
+}
+
+export function getAvailableObligationsForMarket(market: keyof typeof MARKETS) {
+  return Object.values(OBLIGATIONS).filter(token => token.market === getMarketId(market));
+}
+export function getAvailableMarketForObligation(obligation: keyof typeof OBLIGATIONS) {
+  const market = Object.values(OBLIGATIONS).find(o => o.pubkey.toString() === obligation)?.market;
+  return market ? [market] : Object.keys(MARKETS);
 }
 
 export function getTimeAgo(timestamp: number): string {

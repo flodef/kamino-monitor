@@ -1,7 +1,12 @@
 import { PublicKey } from '@solana/web3.js';
 
 // Markets
-export const MARKETS = {
+type Market = {
+  pubkey: PublicKey;
+  label: string;
+  lut: PublicKey;
+};
+export const MARKETS: Record<string, Market> = {
   MAIN: {
     pubkey: new PublicKey('7u3HeHxYDLhnCoErrtycNokbQYbWGzLs6JSDqGAv5PfF'),
     label: 'Main Market',
@@ -20,7 +25,16 @@ export const MARKETS = {
 } as const;
 
 // Token Mints
-export const TOKENS = {
+type Token = {
+  pubkey: PublicKey;
+  label: string;
+  id: string;
+  reserve?: PublicKey;
+  reserveJlp?: PublicKey;
+  market: Array<keyof typeof MARKETS>;
+};
+
+export const TOKENS: Record<string, Token> = {
   JUPSOL: {
     pubkey: new PublicKey('jupSoLaHXQiZZTSfEWMTRRgpnyFm8f6sZdosWBjx93v'),
     label: 'JUPSOL',
@@ -72,7 +86,12 @@ export const TOKENS = {
 } as const;
 
 // Obligations
-export const OBLIGATIONS = {
+type Obligation = {
+  pubkey: PublicKey;
+  label: string;
+  market: keyof typeof MARKETS;
+};
+export const OBLIGATIONS: Record<string, Obligation> = {
   MAIN: {
     pubkey: new PublicKey('BaXVzHSXVtyo381T5ouvReMe8yWZ5dyjxzVESSz1y1RG'),
     label: 'Main Obligation',

@@ -1,7 +1,6 @@
+import { v4 as uuidv4 } from 'uuid';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { v4 as uuidv4 } from 'uuid';
-import { MARKETS, TOKENS, OBLIGATIONS } from '../utils/constants';
 
 interface PriceConfig {
   id: string;
@@ -19,7 +18,7 @@ interface MonitorSection {
   id: string;
   type: 'borrow' | 'loan';
   market: string;
-  publicKey: string;
+  publicKey: string | null;
 }
 
 interface Notification {
@@ -43,7 +42,7 @@ interface MonitorState {
   updatePrices: (prices: Record<string, PriceData>) => void;
   updateEurRate: (rate: number) => void;
   setCurrency: (currency: 'EUR' | 'USD') => void;
-  addSection: (type: 'borrow' | 'loan', market: string, publicKey: string) => void;
+  addSection: (section: Omit<MonitorSection, 'id'>) => void;
   removeSection: (id: string) => void;
   addNotification: (message: string) => void;
   removeNotification: (id: string) => void;
@@ -104,18 +103,32 @@ export const useMonitorStore = create<MonitorState>()(
         }
       },
 
-      addSection: (type, market, publicKey) =>
-        set(state => ({
-          sections: [
-            ...state.sections,
-            {
-              id: uuidv4(),
-              type,
-              market,
-              publicKey,
-            },
-          ],
-        })),
+      addSection: section => {
+        set(state => {
+          // Check for duplicates if it's a borrow section
+          if (section.type === 'borrow') {
+            const isDuplicate = state.sections.some(
+              s =>
+                s.type === 'borrow' &&
+                s.market === section.market &&
+                s.publicKey === section.publicKey
+            );
+            if (isDuplicate) {
+              return state;
+            }
+          }
+
+          return {
+            sections: [
+              ...state.sections,
+              {
+                ...section,
+                id: crypto.randomUUID(),
+              },
+            ],
+          };
+        });
+      },
 
       removeSection: id =>
         set(state => ({

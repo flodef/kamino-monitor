@@ -1,4 +1,5 @@
 import { STATUS_REFRESH_INTERVAL } from '@/utils/constants';
+import { getApiUrl } from '@/utils/api';
 import { getLoan, getMarket, getMarketName, toRatio, toValue } from '@/utils/helpers';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { NextResponse } from 'next/server';
@@ -41,7 +42,8 @@ export async function GET(request: Request) {
 
     // Get connection from connection API
     if (!connection) {
-      const response = await fetch('http://localhost:3000/api/connection', {
+      const url = await getApiUrl('/api/connection');
+      const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ rpcLabel: 'Helius' }), // Default to Helius

@@ -28,7 +28,6 @@ const PriceSection = () => {
     currency,
     eurRate,
     isLoading,
-    lastFetchTimestamp,
     updatePrices,
     setIsLoading,
     removePriceConfig,
@@ -74,7 +73,6 @@ const PriceSection = () => {
 
   useEffect(() => {
     let startTime = Date.now();
-    let progressInterval: NodeJS.Timeout;
 
     const updateProgress = () => {
       const elapsedTime = Date.now() - startTime;
@@ -94,7 +92,7 @@ const PriceSection = () => {
     fetchPrices();
 
     // Set up the progress interval
-    progressInterval = setInterval(updateProgress, PRICE_UPDATE_INTERVAL);
+    const progressInterval = setInterval(updateProgress, PRICE_UPDATE_INTERVAL);
 
     return () => {
       clearInterval(progressInterval);

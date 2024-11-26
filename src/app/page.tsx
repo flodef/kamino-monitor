@@ -1,9 +1,9 @@
 'use client';
 
+import AddIcon from '@mui/icons-material/Add';
 import AddSectionDialog from '@/components/AddSectionDialog';
 import BorrowStatusSection from '@/components/BorrowStatusSection';
 import LoanStatusSection from '@/components/LoanStatusSection';
-import Notifications from '@/components/Notifications';
 import PriceSection from '@/components/PriceSection';
 import RpcSelector from '@/components/RpcSelector';
 import { useMonitorStore } from '@/store/monitorStore';
@@ -27,30 +27,37 @@ export default function Home() {
         <div className="grid grid-cols-1 gap-6">
           <PriceSection />
 
-          {sections.map(section => (
-            <div key={section.id}>
-              {section.type === 'borrow' ? (
-                <BorrowStatusSection
-                  market={section.market}
-                  mint={section.publicKey!}
-                  onRemove={() => removeSection(section.id)}
-                />
-              ) : (
-                <LoanStatusSection
-                  market={section.market}
-                  obligation={section.publicKey!}
-                  onRemove={() => removeSection(section.id)}
-                />
-              )}
-            </div>
-          ))}
+          <div className="flex flex-wrap gap-4">
+            {sections.map(section => (
+              <div key={section.id} className="w-[296px] h-64">
+                {section.type === 'borrow' ? (
+                  <BorrowStatusSection
+                    market={section.market}
+                    mint={section.publicKey!}
+                    onRemove={() => removeSection(section.id)}
+                  />
+                ) : (
+                  <LoanStatusSection
+                    market={section.market}
+                    obligation={section.publicKey!}
+                    onRemove={() => removeSection(section.id)}
+                  />
+                )}
+              </div>
+            ))}
 
-          <button
-            onClick={() => setShowAddDialog(true)}
-            className="bg-primary rounded-lg p-6 text-center text-gray-400 hover:text-white transition-colors"
-          >
-            + Add Section
-          </button>
+            <div
+              className="w-[296px] h-64 bg-primary rounded-lg p-6 text-center hover:bg-gray-800 transition-colors cursor-pointer"
+              onClick={() => setShowAddDialog(true)}
+            >
+              <div className="h-full flex flex-col items-center justify-center">
+                <div className="text-gray-400 mb-1">Add Section</div>
+                <div className="text-white font-medium text-lg">
+                  <AddIcon />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
