@@ -17,11 +17,19 @@ export default function LoanStatusSection({
 }) {
   const [status, setStatus] = useState<LoanStatusResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const { addNotification, updateLoanStatus, removeLoanStatus } = useMonitorStore();
+  const { addNotification, updateLoanStatus, removeLoanStatus, loanStatuses } = useMonitorStore();
 
   const marketName = getMarketName(market);
   const obligationName = getObligationName(obligation);
   const statusKey = `${market}-${obligation}`;
+
+  // Load stored status on mount
+  useEffect(() => {
+    const storedStatus = loanStatuses[statusKey];
+    if (storedStatus) {
+      setStatus(storedStatus);
+    }
+  }, [statusKey, loanStatuses]);
 
   const fetchStatus = async () => {
     try {

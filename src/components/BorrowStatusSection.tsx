@@ -17,11 +17,19 @@ export default function BorrowStatusSection({
 }) {
   const [status, setStatus] = useState<BorrowStatusResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const { addNotification, updateBorrowStatus, removeBorrowStatus } = useMonitorStore();
+  const { addNotification, updateBorrowStatus, removeBorrowStatus, borrowStatuses } = useMonitorStore();
 
   const marketName = getMarketName(market);
   const tokenName = getTokenName(mint);
   const statusKey = `${market}-${mint}`;
+
+  // Load stored status on mount
+  useEffect(() => {
+    const storedStatus = borrowStatuses[statusKey];
+    if (storedStatus) {
+      setStatus(storedStatus);
+    }
+  }, [statusKey, borrowStatuses]);
 
   const fetchStatus = async () => {
     try {

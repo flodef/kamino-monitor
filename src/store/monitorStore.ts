@@ -1,8 +1,8 @@
+import { BorrowStatusResponse } from '@/app/api/borrow-status/route';
+import { LoanStatusResponse } from '@/app/api/loan-status/route';
 import { v4 as uuidv4 } from 'uuid';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { BorrowStatusResponse } from '@/app/api/borrow-status/route';
-import { LoanStatusResponse } from '@/app/api/loan-status/route';
 
 interface PriceConfig {
   id: string;
@@ -30,6 +30,14 @@ interface Notification {
   timestamp: number;
 }
 
+interface StoredLoanStatus extends LoanStatusResponse {
+  lastUpdated: number;
+}
+
+interface StoredBorrowStatus extends BorrowStatusResponse {
+  lastUpdated: number;
+}
+
 interface MonitorState {
   priceConfigs: PriceConfig[];
   prices: Record<string, PriceData>;
@@ -39,8 +47,8 @@ interface MonitorState {
   notifications: Notification[];
   isLoading: boolean;
   lastFetchTimestamp: number | null;
-  loanStatuses: Record<string, LoanStatusResponse>;
-  borrowStatuses: Record<string, BorrowStatusResponse>;
+  loanStatuses: Record<string, StoredLoanStatus>;
+  borrowStatuses: Record<string, StoredBorrowStatus>;
   addPriceConfig: (config: Omit<PriceConfig, 'id'>) => void;
   removePriceConfig: (id: string) => void;
   updatePrices: (prices: Record<string, PriceData>) => void;
@@ -174,12 +182,31 @@ export const useMonitorStore = create<MonitorState>()(
 
       updateLoanStatus: (key, status) =>
         set(state => ({
-          loanStatuses: { ...state.loanStatuses, [key]: status },
+          loanStatuses: {
+            ...state.loanStatuses,
+            [key]: {
+              ...status,
+              lastUpdated: new Date(status.timestamp).getTime(),
+              amounts: status.amounts.map(amount => ({
+                token: amount.token,
+                amount: amount.amount,
+                apy: amount.apy,
+                apr: amount.apr,
+                direction: amount.direction,
+              })),
+            },
+          },
         })),
 
       updateBorrowStatus: (key, status) =>
         set(state => ({
-          borrowStatuses: { ...state.borrowStatuses, [key]: status },
+          borrowStatuses: {
+            ...state.borrowStatuses,
+            [key]: {
+              ...status,
+              lastUpdated: new Date(status.timestamp).getTime(),
+            },
+          },
         })),
 
       removeLoanStatus: key =>
