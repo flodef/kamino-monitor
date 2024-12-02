@@ -13,10 +13,25 @@ export default function AddSectionDialog({ onClose }: { onClose: () => void }) {
   const [market, setMarket] = useState(MARKET_OPTIONS[0].value);
   const [mint, setMint] = useState(MINT_OPTIONS[0].value);
   const [obligation, setObligation] = useState(OBLIGATION_OPTIONS[0].value);
-  const { addSection } = useMonitorStore();
+  const { addSection, sections } = useMonitorStore();
+
+  const isDuplicate = () => {
+    if (type === 'borrow') {
+      return sections.some(
+        section => section.type === 'borrow' && section.market === market && section.publicKey === mint
+      );
+    } else {
+      return sections.some(
+        section =>
+          section.type === 'loan' && section.market === market && section.publicKey === obligation
+      );
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isDuplicate()) return;
+    
     if (type === 'borrow') {
       addSection({ type, market, publicKey: mint });
     } else {
@@ -24,6 +39,8 @@ export default function AddSectionDialog({ onClose }: { onClose: () => void }) {
     }
     onClose();
   };
+
+  const isDisabled = isDuplicate();
 
   return (
     <div className="z-10 fixed inset-0 bg-black/50 flex items-center justify-center">
@@ -110,7 +127,7 @@ export default function AddSectionDialog({ onClose }: { onClose: () => void }) {
             </div>
           )}
 
-          <div className="flex justify-end gap-4">
+          <div className="flex justify-end mt-6">
             <button
               type="button"
               onClick={onClose}
@@ -120,9 +137,14 @@ export default function AddSectionDialog({ onClose }: { onClose: () => void }) {
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+              className={`px-4 py-2 rounded ${
+                isDisabled
+                  ? 'bg-gray-500 cursor-not-allowed'
+                  : 'bg-blue-500 hover:bg-blue-600'
+              }`}
+              disabled={isDisabled}
             >
-              Add Section
+              {isDisabled ? 'Already Added' : 'Add Section'}
             </button>
           </div>
         </form>
