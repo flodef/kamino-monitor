@@ -2,6 +2,9 @@ import { LoanStatusResponse } from '@/app/api/loan-status/route';
 import { useMonitorStore } from '@/store/monitorStore';
 import { useEffect, useState } from 'react';
 import CloseButton from './CloseButton';
+import { getMarketName, getObligationName } from '@/utils/helpers';
+import FreshnessIndicator from './FreshnessIndicator';
+import { STATUS_REFRESH_INTERVAL } from '@/utils/constants';
 
 export default function LoanStatusSection({
   market,
@@ -13,7 +16,12 @@ export default function LoanStatusSection({
   onRemove: () => void;
 }) {
   const [status, setStatus] = useState<LoanStatusResponse | null>(null);
-  const { addNotification } = useMonitorStore();
+  const [error, setError] = useState<string | null>(null);
+  const { addNotification, updateLoanStatus, removeLoanStatus } = useMonitorStore();
+
+  const marketName = getMarketName(market);
+  const obligationName = getObligationName(obligation);
+  const statusKey = `${market}-${obligation}`;
 
   const fetchStatus = async () => {
     try {
@@ -22,20 +30,23 @@ export default function LoanStatusSection({
           obligation
         )}`
       );
-      if (!response.ok) throw new Error('Failed to fetch loan status');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch loan status');
+      }
 
-      const data = await response.json();
-      setStatus(data);
+      const loanStatus = await response.json();
+      setStatus(loanStatus);
+      updateLoanStatus(statusKey, loanStatus);
 
       // Check for underwater loans
-      data.loanInfo.forEach((loan: LoanStatusResponse) => {
-        if (loan.isUnderwater) {
-          addNotification(
-            `Loan is underwater in market ${loan.marketName} with LTV ${loan.loanToValue}`
-          );
-        }
-      });
-    } catch {
+      if (loanStatus.isUnderwater) {
+        addNotification(
+          `Loan is underwater in market ${loanStatus.marketName} with LTV ${loanStatus.loanToValue}`
+        );
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to fetch loan status');
       setStatus(null);
     }
   };
@@ -43,25 +54,36 @@ export default function LoanStatusSection({
   useEffect(() => {
     fetchStatus();
     const interval = setInterval(fetchStatus, 60000); // Update every minute
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      removeLoanStatus(statusKey);
+    };
   }, [market, obligation]);
 
   return (
-    <div className="bg-primary rounded-lg p-6 h-full">
-      <div className="flex justify-between items-start mb-7">
-        <h3 className="text-xl font-semibold text-white">Loan Status</h3>
+    <div className="flex flex-col bg-primary rounded-lg p-6 h-full">
+      <div className="flex justify-between items-start mb-2">
+        <div className="flex flex-row items-center gap-4">
+          <h3 className="text-xl font-semibold text-white">Loan Status</h3>
+          {status && (
+            <FreshnessIndicator
+              timestamp={new Date(status.timestamp).getTime()}
+              refreshInterval={STATUS_REFRESH_INTERVAL}
+            />
+          )}
+        </div>
         <CloseButton onClick={onRemove} />
       </div>
-      {status && (
+      {status ? (
         <div className="mb-6 last:mb-0">
           <div className="space-y-2 mb-4">
             <div className="flex justify-between">
               <span className="text-gray-400">Market</span>
-              <span className="text-white font-mono">{market}</span>
+              <span className="text-white font-mono">{marketName}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-400">Obligation</span>
-              <span className="text-white font-mono">{obligation}</span>
+              <span className="text-white font-mono">{obligationName}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-400">Loan to Value</span>
@@ -85,10 +107,8 @@ export default function LoanStatusSection({
                         <span className="text-white">{amount.amount}</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-400">APY/APR</span>
-                        <span className="text-gray-200">
-                          {amount.apy} / {amount.apr}
-                        </span>
+                        <span className="text-gray-400">APY</span>
+                        <span className="text-gray-200">{amount.apy}</span>
                       </div>
                     </div>
                   ))}
@@ -107,10 +127,8 @@ export default function LoanStatusSection({
                         <span className="text-white">{amount.amount}</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-400">APY/APR</span>
-                        <span className="text-gray-200">
-                          {amount.apy} / {amount.apr}
-                        </span>
+                        <span className="text-gray-400">APY</span>
+                        <span className="text-gray-200">{amount.apy}</span>
                       </div>
                     </div>
                   ))}
@@ -118,8 +136,13 @@ export default function LoanStatusSection({
             </div>
           </div>
         </div>
+      ) : !error ? (
+        <div className="text-center h-full text-gray-400 content-center">Loading...</div>
+      ) : (
+        <div className="bg-red-500/10 text-red-500 p-4 rounded-lg mb-6 content-center">
+          Error: {error}
+        </div>
       )}
-      {!status && <div className="text-center py-4 text-gray-400">Loading...</div>}
     </div>
   );
 }

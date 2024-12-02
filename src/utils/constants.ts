@@ -45,7 +45,7 @@ export const TOKENS: Record<string, Token> = {
   JUPITER: {
     pubkey: new PublicKey('JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN'),
     label: 'JUP',
-    id: 'jupiter',
+    id: 'jupiter-exchange-solana',
     market: ['MAIN'],
   },
   JLP: {
@@ -94,12 +94,17 @@ type Obligation = {
 export const OBLIGATIONS: Record<string, Obligation> = {
   MAIN: {
     pubkey: new PublicKey('BaXVzHSXVtyo381T5ouvReMe8yWZ5dyjxzVESSz1y1RG'),
-    label: 'Main Obligation',
+    label: 'SOL - USDS',
     market: 'MAIN',
+  },
+  JLP: {
+    pubkey: new PublicKey('FNEEaUB7ofVuSX3pmPa4bvyWYg4Vd8K93udrohbAPVxq'),
+    label: 'JLP / SOL',
+    market: 'JLP',
   },
   JITO: {
     pubkey: new PublicKey('4reVLzoLVGis15oaGXfAkftyRe21emmy9iANbmfHUAWo'),
-    label: 'Jito Obligation',
+    label: 'SOL + JTO',
     market: 'JITO',
   },
 } as const;

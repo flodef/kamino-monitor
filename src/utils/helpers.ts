@@ -175,9 +175,14 @@ export function getTokenName(mintPubkey: string): string {
     Object.values(TOKENS).find(token => token.pubkey.toString() === mintPubkey)?.label || mintPubkey
   );
 }
+export function getObligationName(obligationPubkey: string): string {
+  return (
+    Object.values(OBLIGATIONS).find(obligation => obligation.pubkey.toString() === obligationPubkey)
+      ?.label || obligationPubkey
+  );
+}
 
 export function getAvailableTokensForMarket(market: keyof typeof MARKETS) {
-  console.log(getMarketName(market));
   return Object.values(TOKENS).filter(token => token.market.includes(getMarketId(market)));
 }
 export function getAvailableMarketsForToken(token: keyof typeof TOKENS) {
@@ -200,4 +205,15 @@ export function getTimeAgo(timestamp: number): string {
     return `${diffInSeconds} seconds ago`;
   }
   return formatDistanceToNow(timestamp, { addSuffix: true });
+}
+
+/**
+ * Format a public key to show first 4 and last 4 characters
+ * @param pubkey The public key to format (can be string or PublicKey)
+ * @returns Formatted string like "AbCd...xyZ1"
+ */
+export function formatPubkey(pubkey: string | PublicKey): string {
+  const pubkeyStr = pubkey.toString();
+  if (pubkeyStr.length <= 8) return pubkeyStr;
+  return `${pubkeyStr.slice(0, 4)}...${pubkeyStr.slice(-4)}`;
 }

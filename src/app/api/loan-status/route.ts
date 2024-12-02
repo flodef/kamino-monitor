@@ -1,6 +1,6 @@
 import { STATUS_REFRESH_INTERVAL } from '@/utils/constants';
 import { getApiUrl } from '@/utils/api';
-import { getLoan, getMarket, getMarketName, toRatio, toValue } from '@/utils/helpers';
+import { formatPubkey, getLoan, getMarket, getMarketName, toRatio, toValue } from '@/utils/helpers';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { NextResponse } from 'next/server';
 
@@ -68,7 +68,24 @@ export async function GET(request: Request) {
     };
 
     const marketData = await getMarket(args);
-    const loan = await getLoan(args);
+    console.log('marketData', marketData);
+
+    let loan;
+    try {
+      loan = await getLoan(args);
+    } catch (error) {
+      console.error(error);
+      return NextResponse.json(
+        {
+          error:
+            'Market not found for market: ' +
+            formatPubkey(marketPubkey) +
+            ' and obligation: ' +
+            formatPubkey(obligationPubkey),
+        },
+        { status: 404 }
+      );
+    }
 
     if (!loan) {
       return NextResponse.json({ error: 'Loan not found' }, { status: 404 });
@@ -76,8 +93,7 @@ export async function GET(request: Request) {
 
     // Process loan data if it exists
     const currentSlot = await connection.getSlot();
-    const loanStats = loan.refreshedStats;
-    const isUnderwater = loan.loanToValue().gt(loanStats.borrowLimit);
+    const isUnderwater = loan.loanToValue().gt(0.7);
     const loanToValue = toRatio(loan.loanToValue().toNumber());
     const amounts: LoanAmounts[] = [];
 

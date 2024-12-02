@@ -1,10 +1,10 @@
-import { BorrowStatusResponse } from '@/app/api/borrow-status/route';
 import { useMonitorStore } from '@/store/monitorStore';
 import { STATUS_REFRESH_INTERVAL } from '@/utils/constants';
 import { getMarketName, getTokenName } from '@/utils/helpers';
 import { useEffect, useState } from 'react';
 import CloseButton from './CloseButton';
 import FreshnessIndicator from './FreshnessIndicator';
+import { BorrowStatusResponse } from '@/app/api/borrow-status/route';
 
 export default function BorrowStatusSection({
   market,
@@ -16,26 +16,35 @@ export default function BorrowStatusSection({
   onRemove: () => void;
 }) {
   const [status, setStatus] = useState<BorrowStatusResponse | null>(null);
-  const { addNotification } = useMonitorStore();
+  const [error, setError] = useState<string | null>(null);
+  const { addNotification, updateBorrowStatus, removeBorrowStatus } = useMonitorStore();
 
   const marketName = getMarketName(market);
   const tokenName = getTokenName(mint);
+  const statusKey = `${market}-${mint}`;
 
   const fetchStatus = async () => {
     try {
       const response = await fetch(
         `/api/borrow-status?market=${encodeURIComponent(market)}&mint=${encodeURIComponent(mint)}`
       );
-      if (!response.ok) throw new Error('Failed to fetch borrow status');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch borrow status');
+      }
 
-      const data = await response.json();
-      setStatus(data);
+      const borrowStatus = await response.json();
+      setStatus(borrowStatus);
+      updateBorrowStatus(statusKey, borrowStatus);
 
       // Check for underwater loans
-      if (data.isBuyable) {
-        addNotification(`${data.buyCap} ${getTokenName(mint)} are buyable in market ${marketName}`);
+      if (borrowStatus.isBuyable) {
+        addNotification(
+          `${borrowStatus.buyCap} ${getTokenName(mint)} are buyable in market ${marketName}`
+        );
       }
-    } catch {
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to fetch borrow status');
       setStatus(null);
     }
   };
@@ -43,11 +52,14 @@ export default function BorrowStatusSection({
   useEffect(() => {
     fetchStatus();
     const interval = setInterval(fetchStatus, 60000); // Update every minute
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      removeBorrowStatus(statusKey);
+    };
   }, [market, mint]);
 
   return (
-    <div className="bg-primary rounded-lg p-6 h-full">
+    <div className="flex flex-col bg-primary rounded-lg p-6 h-full">
       <div className="flex justify-between items-start mb-7">
         <div className="flex flex-row items-center gap-4">
           <h3 className="text-xl font-semibold text-white">Borrow Status</h3>
@@ -85,8 +97,12 @@ export default function BorrowStatusSection({
             <span className="text-gray-400">{new Date(status.timestamp).toLocaleTimeString()}</span>
           </div>
         </div>
+      ) : !error ? (
+        <div className="text-center h-full text-gray-400 content-center">Loading...</div>
       ) : (
-        <div className="text-center py-4 text-gray-400">Loading...</div>
+        <div className="bg-red-500/10 text-red-500 p-4 rounded-lg mb-6 content-center">
+          Error: {error}
+        </div>
       )}
     </div>
   );

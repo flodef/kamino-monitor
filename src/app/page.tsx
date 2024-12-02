@@ -29,7 +29,7 @@ export default function Home() {
 
           <div className="flex flex-wrap gap-4">
             {sections.map(section => (
-              <div key={section.id} className="w-[296px] h-64">
+              <div key={section.id} className="w-[296px] h-min-64">
                 {section.type === 'borrow' ? (
                   <BorrowStatusSection
                     market={section.market}

@@ -1,17 +1,11 @@
 import { useMonitorStore } from '@/store/monitorStore';
-import { PRICE_REFRESH_INTERVAL, PRICE_UPDATE_INTERVAL, TOKENS } from '@/utils/constants';
+import { PRICE_REFRESH_INTERVAL, PRICE_UPDATE_INTERVAL, Token, TOKENS } from '@/utils/constants';
 import AddIcon from '@mui/icons-material/Add';
 import { CircularProgress, Switch } from '@mui/material';
 import { useEffect, useState, useCallback } from 'react';
 import AddPriceDialog from './AddPriceDialog';
 import CloseButton from './CloseButton';
 import FreshnessIndicator from './FreshnessIndicator';
-
-const AVAILABLE_TOKENS = Object.values(TOKENS).map(token => ({
-  id: token.id,
-  symbol: token.label,
-  mint: token.pubkey,
-}));
 
 const LoadingSpinner = () => (
   <div className="flex items-center justify-center h-[104px]">
@@ -35,7 +29,7 @@ const PriceSection = () => {
     fetchExchangeRate,
   } = useMonitorStore();
 
-  const availableTokens = AVAILABLE_TOKENS.filter(
+  const availableTokens = Object.values(TOKENS).filter(
     token => !priceConfigs.some(config => config.tokenId === token.id)
   );
 
@@ -50,14 +44,9 @@ const PriceSection = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          tokens: priceConfigs.map(config => {
-            const token = AVAILABLE_TOKENS.find(t => t.id === config.tokenId);
-            return {
-              id: config.tokenId,
-              symbol: config.symbol,
-              mint: token?.mint.toString(),
-            };
-          }),
+          tokens: priceConfigs
+            .map(config => Object.values(TOKENS).find(t => t.id === config.tokenId))
+            .filter(Boolean) as Token[],
         }),
       });
 
@@ -148,7 +137,7 @@ const PriceSection = () => {
 
         <div className="flex flex-wrap gap-4">
           {priceConfigs.map(config => {
-            const token = AVAILABLE_TOKENS.find(t => t.id === config.tokenId);
+            const token = Object.values(TOKENS).find(t => t.id === config.tokenId);
             if (!token) return null;
 
             const priceData = prices[config.tokenId];
@@ -167,7 +156,7 @@ const PriceSection = () => {
                 />
                 <div className="text-center pt-2">
                   <div className="flex items-center justify-center gap-2 mb-1">
-                    <span className="text-gray-400">{token.symbol}</span>
+                    <span className="text-gray-400">{token.label}</span>
                   </div>
                   <div className="text-white font-medium text-lg">
                     {priceData

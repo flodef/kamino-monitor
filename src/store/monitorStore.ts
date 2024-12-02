@@ -1,6 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { BorrowStatusResponse } from '@/app/api/borrow-status/route';
+import { LoanStatusResponse } from '@/app/api/loan-status/route';
 
 interface PriceConfig {
   id: string;
@@ -37,6 +39,8 @@ interface MonitorState {
   notifications: Notification[];
   isLoading: boolean;
   lastFetchTimestamp: number | null;
+  loanStatuses: Record<string, LoanStatusResponse>;
+  borrowStatuses: Record<string, BorrowStatusResponse>;
   addPriceConfig: (config: Omit<PriceConfig, 'id'>) => void;
   removePriceConfig: (id: string) => void;
   updatePrices: (prices: Record<string, PriceData>) => void;
@@ -49,6 +53,10 @@ interface MonitorState {
   setIsLoading: (loading: boolean) => void;
   setLastFetchTimestamp: (timestamp: number) => void;
   getPriceData: (tokenId: string) => PriceData | null;
+  updateLoanStatus: (key: string, status: LoanStatusResponse) => void;
+  updateBorrowStatus: (key: string, status: BorrowStatusResponse) => void;
+  removeLoanStatus: (key: string) => void;
+  removeBorrowStatus: (key: string) => void;
   fetchExchangeRate: () => Promise<void>;
 }
 
@@ -61,8 +69,10 @@ export const useMonitorStore = create<MonitorState>()(
       eurRate: 1,
       sections: [],
       notifications: [],
-      isLoading: true,
+      isLoading: false,
       lastFetchTimestamp: null,
+      loanStatuses: {},
+      borrowStatuses: {},
 
       addPriceConfig: config =>
         set(state => ({
@@ -157,14 +167,36 @@ export const useMonitorStore = create<MonitorState>()(
 
       setLastFetchTimestamp: (timestamp: number) => set({ lastFetchTimestamp: timestamp }),
 
-      getPriceData: (tokenId: string) => {
-        const state = get();
-        return state.prices[tokenId] || null;
+      getPriceData: tokenId => {
+        const prices = get().prices;
+        return prices[tokenId] || null;
       },
+
+      updateLoanStatus: (key, status) =>
+        set(state => ({
+          loanStatuses: { ...state.loanStatuses, [key]: status },
+        })),
+
+      updateBorrowStatus: (key, status) =>
+        set(state => ({
+          borrowStatuses: { ...state.borrowStatuses, [key]: status },
+        })),
+
+      removeLoanStatus: key =>
+        set(state => {
+          const { [key]: _, ...rest } = state.loanStatuses; // eslint-disable-line
+          return { loanStatuses: rest };
+        }),
+
+      removeBorrowStatus: key =>
+        set(state => {
+          const { [key]: _, ...rest } = state.borrowStatuses; // eslint-disable-line
+          return { borrowStatuses: rest };
+        }),
 
       fetchExchangeRate: async () => {
         try {
-          const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+          const response = await fetch('https://open.er-api.com/v6/latest/USD');
           const data = await response.json();
           set({ eurRate: data.rates.EUR });
         } catch (error) {

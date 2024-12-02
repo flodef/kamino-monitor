@@ -29,23 +29,27 @@ async function fetchCoinGeckoPrice(tokenId: string) {
 
 export async function POST(request: Request) {
   try {
-    const { tokens } = await request.json();
+    const { tokens }: { tokens: Token[] } = await request.json();
     const prices: Record<string, { price: number; timestamp: number }> = {};
     const timestamp = Date.now();
 
     // Get all mint addresses for batch Jupiter request
-    const mints = tokens.map((config: Token) => config.pubkey.toString()).filter(Boolean);
+    const mints = tokens.map((token: Token) => token.pubkey.toString());
+
+    if (mints.length === 0) {
+      return NextResponse.json({ prices });
+    }
 
     // Fetch all prices from Jupiter at once
     const jupiterPrices = await fetchJupiterPrices(mints);
 
     // Process results and fetch missing prices from CoinGecko
-    for (const config of tokens) {
+    for (const token of tokens) {
       try {
         // Try Jupiter price first
-        const jupiterPrice = jupiterPrices[config.pubkey];
+        const jupiterPrice = jupiterPrices[token.pubkey.toString()];
         if (jupiterPrice) {
-          prices[config.id] = {
+          prices[token.id] = {
             price: parseFloat(jupiterPrice.price),
             timestamp,
           };
@@ -53,15 +57,15 @@ export async function POST(request: Request) {
         }
 
         // Fallback to CoinGecko
-        const geckoPrice = await fetchCoinGeckoPrice(config.id);
+        const geckoPrice = await fetchCoinGeckoPrice(token.id);
         if (geckoPrice) {
-          prices[config.id] = {
+          prices[token.id] = {
             price: geckoPrice,
             timestamp,
           };
         }
       } catch (error) {
-        console.error(`Error fetching price for ${config.id}:`, error);
+        console.error(`Error fetching price for ${token.id}:`, error);
       }
     }
 

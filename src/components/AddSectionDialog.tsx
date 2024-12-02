@@ -50,7 +50,13 @@ export default function AddSectionDialog({ onClose }: { onClose: () => void }) {
             <label className="block text-gray-400 mb-2">Market</label>
             <select
               value={market}
-              onChange={e => setMarket(e.target.value)}
+              onChange={e => {
+                setMarket(e.target.value);
+                setMint(getAvailableTokensForMarket(e.target.value)[0].pubkey.toString());
+                setObligation(
+                  getAvailableObligationsForMarket(e.target.value)[0].pubkey.toString()
+                );
+              }}
               className="w-full bg-secondary text-white rounded p-2"
             >
               {type === 'borrow'
@@ -72,7 +78,12 @@ export default function AddSectionDialog({ onClose }: { onClose: () => void }) {
               <label className="block text-gray-400 mb-2">Mint</label>
               <select
                 value={mint}
-                onChange={e => setMint(e.target.value)}
+                onChange={e => {
+                  setMint(e.target.value);
+                  if (type === 'borrow') {
+                    setMarket(getAvailableMarketsForToken(e.target.value)[0]);
+                  }
+                }}
                 className="w-full bg-secondary text-white rounded p-2"
               >
                 {getAvailableTokensForMarket(market).map(token => (
