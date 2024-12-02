@@ -17,7 +17,8 @@ export default function BorrowStatusSection({
 }) {
   const [status, setStatus] = useState<BorrowStatusResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const { addNotification, updateBorrowStatus, removeBorrowStatus, borrowStatuses } = useMonitorStore();
+  const { addNotification, updateBorrowStatus, removeBorrowStatus, borrowStatuses } =
+    useMonitorStore();
 
   const marketName = getMarketName(market);
   const tokenName = getTokenName(mint);
@@ -53,7 +54,6 @@ export default function BorrowStatusSection({
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to fetch borrow status');
-      setStatus(null);
     }
   };
 
@@ -73,7 +73,7 @@ export default function BorrowStatusSection({
           <h3 className="text-xl font-semibold text-white">Borrow Status</h3>
           {status && (
             <FreshnessIndicator
-              timestamp={new Date(status.timestamp).getTime()}
+              timestamp={status.timestamp}
               refreshInterval={STATUS_REFRESH_INTERVAL}
             />
           )}

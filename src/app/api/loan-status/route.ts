@@ -16,7 +16,7 @@ export type LoanStatusResponse = {
   isUnderwater: boolean;
   loanToValue: string;
   marketName: string;
-  timestamp: string;
+  timestamp: number;
   amounts: LoanAmounts[];
 };
 
@@ -127,7 +127,7 @@ export async function GET(request: Request) {
       isUnderwater,
       loanToValue,
       marketName,
-      timestamp: new Date().toISOString(),
+      timestamp: Date.now(),
       amounts,
     };
 

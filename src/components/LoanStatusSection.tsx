@@ -55,7 +55,6 @@ export default function LoanStatusSection({
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to fetch loan status');
-      setStatus(null);
     }
   };
 
@@ -75,7 +74,7 @@ export default function LoanStatusSection({
           <h3 className="text-xl font-semibold text-white">Loan Status</h3>
           {status && (
             <FreshnessIndicator
-              timestamp={new Date(status.timestamp).getTime()}
+              timestamp={status.timestamp}
               refreshInterval={STATUS_REFRESH_INTERVAL}
             />
           )}

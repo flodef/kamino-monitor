@@ -186,7 +186,7 @@ export const useMonitorStore = create<MonitorState>()(
             ...state.loanStatuses,
             [key]: {
               ...status,
-              lastUpdated: new Date(status.timestamp).getTime(),
+              lastUpdated: status.timestamp,
               amounts: status.amounts.map(amount => ({
                 token: amount.token,
                 amount: amount.amount,
@@ -204,7 +204,7 @@ export const useMonitorStore = create<MonitorState>()(
             ...state.borrowStatuses,
             [key]: {
               ...status,
-              lastUpdated: new Date(status.timestamp).getTime(),
+              lastUpdated: status.timestamp,
             },
           },
         })),

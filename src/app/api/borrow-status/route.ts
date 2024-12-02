@@ -6,7 +6,7 @@ import { NextResponse } from 'next/server';
 export type BorrowStatusResponse = {
   isBuyable: boolean;
   buyCap: string;
-  timestamp: string;
+  timestamp: number;
 };
 
 const CACHE_REVALIDATE_SECONDS = 30;
@@ -62,7 +62,7 @@ export async function GET(request: Request) {
     const response: BorrowStatusResponse = {
       isBuyable,
       buyCap,
-      timestamp: new Date().toISOString(),
+      timestamp: Date.now(),
     };
 
     return NextResponse.json(response, {
