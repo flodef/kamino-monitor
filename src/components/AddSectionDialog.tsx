@@ -26,7 +26,7 @@ export default function AddSectionDialog({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
+    <div className="z-10 fixed inset-0 bg-black/50 flex items-center justify-center">
       <div className="bg-primary rounded-lg p-6 max-w-md w-full mx-4">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-semibold text-white">Add Section</h2>
