@@ -68,7 +68,6 @@ export async function GET(request: Request) {
     };
 
     const marketData = await getMarket(args);
-    console.log('marketData', marketData);
 
     let loan;
     try {

@@ -89,10 +89,6 @@ export const useKaminoStore = create<KaminoState>((set, get) => ({
 
     try {
       set({ isLoading: true, error: null });
-      const reserves = market.getReserves();
-      console.log(
-        `found market ${MARKETS.MAIN.pubkey.toString()} reserves:\n\n${reserves.map(x => x.symbol + ': ' + x.address.toString()).join('\n')}`
-      );
 
       const newReserves: { [key: string]: ReserveData } = {};
       const newPrices: { [key: string]: number } = {};
