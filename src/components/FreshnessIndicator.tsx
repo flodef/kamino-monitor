@@ -1,5 +1,5 @@
 import { getTimeAgo } from '@/utils/helpers';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface FreshnessIndicatorProps {
   timestamp: number;
@@ -13,6 +13,17 @@ const FreshnessIndicator = ({
   className = '',
 }: FreshnessIndicatorProps) => {
   const [showTooltip, setShowTooltip] = useState(false);
+  const [, setUpdateTrigger] = useState(0);
+
+  useEffect(() => {
+    // Update every second to check freshness
+    const timer = setInterval(() => {
+      setUpdateTrigger(prev => prev + 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
   const isFresh = Date.now() - timestamp <= refreshInterval;
 
   return (
