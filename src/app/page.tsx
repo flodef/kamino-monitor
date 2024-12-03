@@ -19,7 +19,7 @@ export default function Home() {
       <Toaster position="top-right" />
 
       <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
           <h1 className="text-4xl font-bold text-white">Kamino Finance Monitor</h1>
           <RpcSelector />
         </div>
