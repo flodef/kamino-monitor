@@ -154,8 +154,13 @@ export async function executeUserSetupLutsTransactions(
 export function toValue(value: Decimal, reserve: KaminoReserve): string {
   return value.div(reserve.getMintFactor()).toFixed(2);
 }
+
 export function toRatio(value: number): string {
-  return `${(value * 100).toFixed(2)}%`;
+  const percentage = value * 100;
+  const decimalStr = percentage.toFixed(2);
+  // Remove trailing zeros after decimal point
+  const trimmed = decimalStr.replace(/\.?0+$/, '');
+  return `${trimmed}%`;
 }
 
 export function getMarketId(marketPubkey: string): string {
