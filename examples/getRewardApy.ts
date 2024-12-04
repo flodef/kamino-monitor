@@ -8,7 +8,7 @@ import { loadReserveData } from '../src/utils/helpers';
 
   const connection = getConnection();
   console.log(
-    `fetching data for market ${marketPubKey.toString()} reserve for ${mintPubKey.toString()}`
+    `fetching data for market ${marketPubKey.toString()} rewards for ${mintPubKey.toString()}`
   );
   const { market, reserve } = await loadReserveData({
     connection,

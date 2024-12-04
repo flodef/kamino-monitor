@@ -5,6 +5,7 @@ import CloseButton from './CloseButton';
 import { getMarketName, getObligationName } from '@/utils/helpers';
 import FreshnessIndicator from './FreshnessIndicator';
 import { STATUS_REFRESH_INTERVAL } from '@/utils/constants';
+import Tooltip from './Tooltip';
 
 export default function LoanStatusSection({
   market,
@@ -22,6 +23,14 @@ export default function LoanStatusSection({
   const marketName = getMarketName(market);
   const obligationName = getObligationName(obligation);
   const statusKey = `${market}-${obligation}`;
+
+  const isCriticallyUnderwater = (status: LoanStatusResponse) => {
+    const ltv = parseFloat(status.loanToValue);
+    const limitLtv = parseFloat(status.limitLtv);
+    const liquidationLtv = parseFloat(status.liquidationLtv);
+    const medianThreshold = limitLtv + (liquidationLtv - limitLtv) / 2;
+    return ltv > medianThreshold;
+  };
 
   // Load stored status on mount
   useEffect(() => {
@@ -68,7 +77,7 @@ export default function LoanStatusSection({
   }, [market, obligation]);
 
   return (
-    <div className="flex flex-col bg-primary rounded-lg p-6 h-full">
+    <div className={`flex flex-col bg-primary rounded-lg p-6 h-full ${status && isCriticallyUnderwater(status) ? 'animate-pulse-danger' : ''}`}>
       <div className="flex justify-between items-start mb-2">
         <div className="flex flex-row items-center gap-4">
           <h3 className="text-xl font-semibold text-white">Loan Status</h3>
@@ -94,9 +103,18 @@ export default function LoanStatusSection({
             </div>
             <div className="flex justify-between">
               <span className="text-gray-400">Loan to Value</span>
-              <span className={status.isUnderwater ? 'text-red-400' : 'text-green-400'}>
-                {status.loanToValue}
-              </span>
+              <Tooltip 
+                content={
+                  <div className="text-center">
+                    <div>Limit LTV: {status.limitLtv}</div>
+                    <div>Liquidation LTV: {status.liquidationLtv}</div>
+                  </div>
+                }
+              >
+                <span className={status.isUnderwater ? 'text-red-400' : 'text-green-400'}>
+                  {status.loanToValue}
+                </span>
+              </Tooltip>
             </div>
           </div>
 
