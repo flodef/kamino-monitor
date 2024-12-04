@@ -1,5 +1,6 @@
 import { getTimeAgo } from '@/utils/helpers';
 import { useEffect, useState } from 'react';
+import Tooltip from './Tooltip';
 
 interface FreshnessIndicatorProps {
   timestamp: number;
@@ -12,7 +13,6 @@ const FreshnessIndicator = ({
   refreshInterval,
   className = '',
 }: FreshnessIndicatorProps) => {
-  const [showTooltip, setShowTooltip] = useState(false);
   const [, setUpdateTrigger] = useState(0);
 
   useEffect(() => {
@@ -27,23 +27,11 @@ const FreshnessIndicator = ({
   const isFresh = Date.now() - timestamp <= refreshInterval;
 
   return (
-    <div className="relative">
+    <Tooltip content={`Last updated: ${getTimeAgo(timestamp)}`}>
       <div
-        className={`w-3 h-3 rounded-full cursor-help ${
-          isFresh ? 'bg-green-500' : 'bg-red-500'
-        } ${className}`}
-        onMouseEnter={() => setShowTooltip(true)}
-        onMouseLeave={() => setShowTooltip(false)}
-        onTouchStart={() => setShowTooltip(true)}
-        onTouchEnd={() => setShowTooltip(false)}
+        className={`w-3 h-3 rounded-full ${isFresh ? 'bg-green-500' : 'bg-red-500'} ${className}`}
       />
-      {showTooltip && (
-        <div className="absolute z-50 px-2 py-1 text-sm text-white bg-gray-900 rounded shadow-lg whitespace-nowrap -translate-x-1/2 left-1/2 -top-8">
-          Last updated: {getTimeAgo(timestamp)}
-          <div className="absolute w-2 h-2 bg-gray-900 rotate-45 -bottom-1 left-1/2 -translate-x-1/2" />
-        </div>
-      )}
-    </div>
+    </Tooltip>
   );
 };
 
