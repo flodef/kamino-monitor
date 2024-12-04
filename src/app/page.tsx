@@ -29,7 +29,7 @@ export default function Home() {
 
           <div className="flex flex-wrap gap-4">
             {sections.map(section => (
-              <div key={section.id} className="w-[296px] h-min-64">
+              <div key={section.id} className="w-[304px] h-min-64">
                 {section.type === 'borrow' ? (
                   <BorrowStatusSection
                     market={section.market}
@@ -47,7 +47,7 @@ export default function Home() {
             ))}
 
             <div
-              className="w-[296px] h-64 bg-primary rounded-lg p-6 text-center hover:bg-gray-800 transition-colors cursor-pointer"
+              className="w-[304px] h-64 bg-primary rounded-lg p-6 text-center hover:bg-gray-800 transition-colors cursor-pointer"
               onClick={() => setShowAddDialog(true)}
             >
               <div className="h-full flex flex-col items-center justify-center">

@@ -5,8 +5,8 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Kamino Finance Monitor',
-  description: 'Real-time monitoring and alerts for Kamino Finance',
+  title: 'FiMs Loan Monitor',
+  description: 'Real-time monitoring and alerts for FiMs loans',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

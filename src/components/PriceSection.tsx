@@ -143,7 +143,7 @@ const PriceSection = () => {
             const priceData = prices[config.tokenId];
 
             return (
-              <div key={config.id} className="bg-gray-700 rounded-lg p-4 relative min-w-[140px]">
+              <div key={config.id} className="bg-gray-700 rounded-lg p-4 relative min-w-36">
                 {priceData && (
                   <FreshnessIndicator
                     timestamp={priceData.timestamp}
