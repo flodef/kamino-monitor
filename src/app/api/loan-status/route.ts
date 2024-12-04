@@ -15,6 +15,8 @@ export type LoanAmounts = {
 export type LoanStatusResponse = {
   isUnderwater: boolean;
   loanToValue: string;
+  limitLtv: string;
+  liquidationLtv: string;
   marketName: string;
   timestamp: number;
   amounts: LoanAmounts[];
@@ -92,8 +94,15 @@ export async function GET(request: Request) {
 
     // Process loan data if it exists
     const currentSlot = await connection.getSlot();
-    const isUnderwater = loan.loanToValue().gt(0.7);
-    const loanToValue = toRatio(loan.loanToValue().toNumber());
+    const stats = loan.refreshedStats;
+    const limitLtv = stats.liquidationLtv
+      .div(stats.borrowLiquidationLimit)
+      .mul(stats.borrowLimit)
+      .plus(0.01)
+      .toNearest(0.01);
+    console.log(toRatio(limitLtv.toNumber()));
+    const loanToValue = loan.loanToValue();
+    const isUnderwater = loanToValue.gt(limitLtv);
     const amounts: LoanAmounts[] = [];
 
     loan.deposits.forEach(deposit => {
@@ -124,7 +133,9 @@ export async function GET(request: Request) {
 
     const response: LoanStatusResponse = {
       isUnderwater,
-      loanToValue,
+      loanToValue: toRatio(loanToValue.toNumber()),
+      limitLtv: toRatio(limitLtv.toNumber()),
+      liquidationLtv: toRatio(stats.liquidationLtv.toNumber()),
       marketName,
       timestamp: Date.now(),
       amounts,
