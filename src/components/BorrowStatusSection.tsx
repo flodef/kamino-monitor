@@ -17,7 +17,7 @@ export default function BorrowStatusSection({
 }) {
   const [status, setStatus] = useState<BorrowStatusResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const { addNotification, updateBorrowStatus, removeBorrowStatus, borrowStatuses } =
+  const { addNotification, updateBorrowStatus, removeBorrowStatus, borrowStatuses, selectedRpc } =
     useMonitorStore();
 
   const marketName = getMarketName(market);
@@ -35,7 +35,7 @@ export default function BorrowStatusSection({
   const fetchStatus = async () => {
     try {
       const response = await fetch(
-        `/api/borrow-status?market=${encodeURIComponent(market)}&mint=${encodeURIComponent(mint)}`
+        `/api/borrow-status?market=${encodeURIComponent(market)}&mint=${encodeURIComponent(mint)}&rpc=${selectedRpc}`
       );
       if (!response.ok) {
         const errorData = await response.json();
@@ -64,7 +64,7 @@ export default function BorrowStatusSection({
       clearInterval(interval);
       removeBorrowStatus(statusKey);
     };
-  }, [market, mint]);
+  }, [market, mint, selectedRpc]);
 
   return (
     <div className="flex flex-col bg-primary rounded-lg p-6 h-full">

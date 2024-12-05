@@ -17,6 +17,7 @@ export async function GET(request: Request) {
   try {
     // Get URL parameters
     const { searchParams } = new URL(request.url);
+    const rpc = searchParams.get('rpc') || 'Helius';
     const market = searchParams.get('market');
     const mint = searchParams.get('mint');
 
@@ -33,7 +34,7 @@ export async function GET(request: Request) {
       const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rpcLabel: 'Helius' }), // Default to Helius
+        body: JSON.stringify({ rpcLabel: rpc }),
       });
 
       if (!response.ok) {

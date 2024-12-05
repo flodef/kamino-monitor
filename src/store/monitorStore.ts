@@ -49,6 +49,7 @@ interface MonitorState {
   lastFetchTimestamp: number | null;
   loanStatuses: Record<string, StoredLoanStatus>;
   borrowStatuses: Record<string, StoredBorrowStatus>;
+  selectedRpc: string;
   addPriceConfig: (config: Omit<PriceConfig, 'id'>) => void;
   removePriceConfig: (id: string) => void;
   updatePrices: (prices: Record<string, PriceData>) => void;
@@ -66,6 +67,7 @@ interface MonitorState {
   removeLoanStatus: (key: string) => void;
   removeBorrowStatus: (key: string) => void;
   fetchExchangeRate: () => Promise<void>;
+  setSelectedRpc: (rpc: string) => void;
 }
 
 export const useMonitorStore = create<MonitorState>()(
@@ -81,6 +83,7 @@ export const useMonitorStore = create<MonitorState>()(
       lastFetchTimestamp: null,
       loanStatuses: {},
       borrowStatuses: {},
+      selectedRpc: 'Helius',
 
       addPriceConfig: config =>
         set(state => ({
@@ -191,7 +194,7 @@ export const useMonitorStore = create<MonitorState>()(
                 token: amount.token,
                 amount: amount.amount,
                 apy: amount.apy,
-                apr: amount.apr,
+                reward: amount.reward,
                 direction: amount.direction,
               })),
             },
@@ -220,6 +223,8 @@ export const useMonitorStore = create<MonitorState>()(
           const { [key]: _, ...rest } = state.borrowStatuses; // eslint-disable-line
           return { borrowStatuses: rest };
         }),
+
+      setSelectedRpc: rpc => set({ selectedRpc: rpc }),
 
       fetchExchangeRate: async () => {
         try {

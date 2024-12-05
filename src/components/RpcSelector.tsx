@@ -1,9 +1,10 @@
 import { RPC_OPTIONS, getPreferredRpc, setPreferredRpc } from '@/utils/connection';
+import { useMonitorStore } from '@/store/monitorStore';
 import { useState } from 'react';
 
 export default function RpcSelector() {
-  const [selectedRpc, setSelectedRpc] = useState(getPreferredRpc());
   const [isConnecting, setIsConnecting] = useState(false);
+  const { selectedRpc, setSelectedRpc } = useMonitorStore();
 
   const handleChange = async (event: React.ChangeEvent<HTMLSelectElement>) => {
     const selected = RPC_OPTIONS.find(rpc => rpc.label === event.target.value);
@@ -21,12 +22,12 @@ export default function RpcSelector() {
         throw new Error('Failed to connect to RPC');
       }
 
-      setSelectedRpc(selected);
+      setSelectedRpc(selected.label);
       setPreferredRpc(selected);
     } catch (error) {
       console.error('Error switching RPC:', error);
       // Revert to previous selection
-      setSelectedRpc(getPreferredRpc());
+      setSelectedRpc(getPreferredRpc().label);
     } finally {
       setIsConnecting(false);
     }
@@ -39,16 +40,16 @@ export default function RpcSelector() {
       </label>
       <select
         id="rpc-select"
-        value={selectedRpc.label}
+        value={selectedRpc}
         onChange={handleChange}
         disabled={isConnecting}
         className={`bg-primary text-white p-2 rounded-lg border border-gray-700 ${
           isConnecting ? 'opacity-50 cursor-not-allowed' : ''
         }`}
       >
-        {RPC_OPTIONS.map(rpc => (
-          <option key={rpc.label} value={rpc.label}>
-            {rpc.label}
+        {RPC_OPTIONS.map(({ label }) => (
+          <option key={label} value={label}>
+            {label}
           </option>
         ))}
       </select>
