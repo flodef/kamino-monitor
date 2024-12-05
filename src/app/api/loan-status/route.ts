@@ -128,11 +128,11 @@ async function fetchKaminoLoanStatus(
 
   return {
     isUnderwater,
+    marketName,
+    timestamp: Date.now(),
     loanToValue: toRatio(loanToValue.toNumber()),
     limitLtv: toRatio(limitLtv.toNumber()),
     liquidationLtv: toRatio(stats.liquidationLtv.toNumber()),
-    marketName,
-    timestamp: Date.now(),
     amounts,
   };
 }
@@ -205,11 +205,11 @@ async function fetchSaveLoanStatus(
 
   return {
     isUnderwater: false,
+    marketName,
+    timestamp: Date.now(),
     loanToValue: toRatio(0),
     limitLtv: toRatio(0),
     liquidationLtv: toRatio(0),
-    marketName,
-    timestamp: Date.now(),
     amounts,
   };
 }
