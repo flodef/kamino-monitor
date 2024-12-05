@@ -3,18 +3,19 @@ import { MARKETS, TOKENS } from '../src/utils/constants';
 import { loadReserveData } from '../src/utils/helpers';
 
 (async () => {
-  const marketPubKey = MARKETS.JITO.pubkey;
-  const mintPubKey = TOKENS.SOL.pubkey;
+  const marketPubkey = MARKETS.MAIN.pubkey;
+  const mintPubkey = TOKENS.hubSOL.pubkey;
 
   const connection = getConnection();
   console.log(
-    `fetching data for market ${marketPubKey.toString()} rewards for ${mintPubKey.toString()}`
+    `fetching data for market ${marketPubkey.toString()} rewards for ${mintPubkey.toString()}`
   );
   const { market, reserve } = await loadReserveData({
     connection,
-    marketPubkey: marketPubKey,
-    mintPubkey: mintPubKey,
+    marketPubkey,
+    mintPubkey,
   });
+
   const prices = await market.getAllScopePrices();
   const rewardApys = await reserve.getRewardYields(prices);
   for (const rewardApy of rewardApys) {
