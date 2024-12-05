@@ -18,7 +18,8 @@ export default function LoanStatusSection({
 }) {
   const [status, setStatus] = useState<LoanStatusResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const { addNotification, updateLoanStatus, removeLoanStatus, loanStatuses } = useMonitorStore();
+  const { addNotification, updateLoanStatus, removeLoanStatus, loanStatuses, selectedRpc } =
+    useMonitorStore();
 
   const marketName = getMarketName(market);
   const obligationName = getObligationName(obligation);
@@ -45,7 +46,7 @@ export default function LoanStatusSection({
       const response = await fetch(
         `/api/loan-status?market=${encodeURIComponent(market)}&obligation=${encodeURIComponent(
           obligation
-        )}`
+        )}&rpc=${selectedRpc}`
       );
       if (!response.ok) {
         const errorData = await response.json();
@@ -53,6 +54,8 @@ export default function LoanStatusSection({
       }
 
       const loanStatus = await response.json();
+      console.log(loanStatus);
+
       setStatus(loanStatus);
       updateLoanStatus(statusKey, loanStatus);
 
@@ -74,10 +77,12 @@ export default function LoanStatusSection({
       clearInterval(interval);
       removeLoanStatus(statusKey);
     };
-  }, [market, obligation]);
+  }, [market, obligation, selectedRpc]);
 
   return (
-    <div className={`flex flex-col bg-primary rounded-lg p-6 h-full ${status && isCriticallyUnderwater(status) ? 'animate-pulse-danger' : ''}`}>
+    <div
+      className={`flex flex-col bg-primary rounded-lg p-6 h-full ${status && isCriticallyUnderwater(status) ? 'animate-pulse-danger' : ''}`}
+    >
       <div className="flex justify-between items-start mb-2">
         <div className="flex flex-row items-center gap-4">
           <h3 className="text-xl font-semibold text-white">Loan Status</h3>
@@ -103,7 +108,7 @@ export default function LoanStatusSection({
             </div>
             <div className="flex justify-between">
               <span className="text-gray-400">Loan to Value</span>
-              <Tooltip 
+              <Tooltip
                 content={
                   <div className="text-center">
                     <div>Limit LTV: {status.limitLtv}</div>
@@ -132,8 +137,23 @@ export default function LoanStatusSection({
                         <span className="text-white">{amount.amount}</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-400">APY</span>
-                        <span className="text-gray-200">{amount.apy}</span>
+                        <span className="text-gray-400">
+                          APY{amount.reward !== '0%' && ' + Reward'}
+                        </span>
+                        <span className="text-gray-200">
+                          {amount.reward !== '0%' ? (
+                            <Tooltip
+                              content={`Total: ${(
+                                parseFloat(amount.apy.replace('%', '')) +
+                                parseFloat(amount.reward.replace('%', ''))
+                              ).toFixed(2)}%`}
+                            >
+                              {amount.apy} + {amount.reward}
+                            </Tooltip>
+                          ) : (
+                            amount.apy
+                          )}
+                        </span>
                       </div>
                     </div>
                   ))}
@@ -152,8 +172,23 @@ export default function LoanStatusSection({
                         <span className="text-white">{amount.amount}</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-400">APY</span>
-                        <span className="text-gray-200">{amount.apy}</span>
+                        <span className="text-gray-400">
+                          APY{amount.reward !== '0%' && ' + Reward'}
+                        </span>
+                        <span className="text-gray-200">
+                          {amount.reward !== '0%' ? (
+                            <Tooltip
+                              content={`Total: ${(
+                                parseFloat(amount.apy.replace('%', '')) +
+                                parseFloat(amount.reward.replace('%', ''))
+                              ).toFixed(2)}%`}
+                            >
+                              {amount.apy} + {amount.reward}
+                            </Tooltip>
+                          ) : (
+                            amount.apy
+                          )}
+                        </span>
                       </div>
                     </div>
                   ))}

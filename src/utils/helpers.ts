@@ -8,7 +8,6 @@ import {
   lamportsToNumberDecimal,
 } from '@kamino-finance/klend-sdk';
 import { aprToApy, KaminoPrices } from '@kamino-finance/kliquidity-sdk';
-import { Scope } from '@kamino-finance/scope-sdk';
 import { Connection, Keypair, PublicKey, TransactionInstruction } from '@solana/web3.js';
 import { formatDistanceToNow } from 'date-fns';
 import Decimal from 'decimal.js';
@@ -55,8 +54,7 @@ export async function getReserveRewardsApy(args: ReserveArgs) {
   const { market, reserve } = await loadReserveData(args);
   const rewardApys: { rewardApy: Decimal; rewardInfo: RewardInfo }[] = [];
 
-  const oraclePrices = await new Scope('mainnet-beta', args.connection).getOraclePrices();
-  const prices = await market.getAllScopePrices(oraclePrices);
+  const prices = await market.getAllScopePrices();
 
   const farmStates = await FarmState.fetchMultiple(args.connection, [
     reserve.state.farmDebt,
