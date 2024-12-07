@@ -83,11 +83,11 @@ async function fetchKaminoLoanStatus(
   // Process loan data if it exists
   const currentSlot = await connection.getSlot();
   const stats = loan.refreshedStats;
-  const limitLtv = stats.liquidationLtv
-    .div(stats.borrowLiquidationLimit)
-    .mul(stats.borrowLimit)
-    .plus(0.01)
-    .toNearest(0.01);
+  const limitLtv =
+    Math.round(
+      stats.liquidationLtv.div(stats.borrowLiquidationLimit).mul(stats.borrowLimit).toNumber() *
+        10000
+    ) / 10000;
   const loanToValue = loan.loanToValue();
   const isUnderwater = loanToValue.gt(limitLtv);
   const amounts: LoanAmounts[] = [];
@@ -131,7 +131,7 @@ async function fetchKaminoLoanStatus(
     marketName,
     timestamp: Date.now(),
     loanToValue: toRatio(loanToValue.toNumber()),
-    limitLtv: toRatio(limitLtv.toNumber()),
+    limitLtv: toRatio(limitLtv),
     liquidationLtv: toRatio(stats.liquidationLtv.toNumber()),
     amounts,
   };
