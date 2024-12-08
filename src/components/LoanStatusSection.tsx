@@ -1,10 +1,10 @@
 import { LoanStatusResponse } from '@/app/api/loan-status/route';
 import { useMonitorStore } from '@/store/monitorStore';
+import { STATUS_REFRESH_INTERVAL } from '@/utils/constants';
+import { getMarketName, getObligationName } from '@/utils/helpers';
 import { useEffect, useState } from 'react';
 import CloseButton from './CloseButton';
-import { getMarketName, getObligationName } from '@/utils/helpers';
 import FreshnessIndicator from './FreshnessIndicator';
-import { STATUS_REFRESH_INTERVAL } from '@/utils/constants';
 import Tooltip from './Tooltip';
 
 export default function LoanStatusSection({
@@ -54,7 +54,6 @@ export default function LoanStatusSection({
       }
 
       const loanStatus = await response.json();
-      console.log(loanStatus);
 
       setStatus(loanStatus);
       updateLoanStatus(statusKey, loanStatus);

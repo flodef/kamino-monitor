@@ -2,7 +2,7 @@ import { useMonitorStore } from '@/store/monitorStore';
 import { PRICE_REFRESH_INTERVAL, PRICE_UPDATE_INTERVAL, Token, TOKENS } from '@/utils/constants';
 import AddIcon from '@mui/icons-material/Add';
 import { CircularProgress, Switch } from '@mui/material';
-import { useEffect, useState, useCallback } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import AddPriceDialog from './AddPriceDialog';
 import CloseButton from './CloseButton';
 import FreshnessIndicator from './FreshnessIndicator';
@@ -28,10 +28,17 @@ const PriceSection = () => {
     setCurrency,
     fetchExchangeRate,
   } = useMonitorStore();
+  const startTime = useRef(Date.now());
 
   const availableTokens = Object.values(TOKENS).filter(
     token => !priceConfigs.some(config => config.tokenId === token.id)
   );
+
+  const resetProgress = useCallback(() => {
+    setProgress(0);
+    startTime.current = Date.now();
+    fetchPrices();
+  }, []);
 
   const fetchPrices = useCallback(async () => {
     if (!priceConfigs.length) {
@@ -61,17 +68,12 @@ const PriceSection = () => {
   }, [priceConfigs]);
 
   useEffect(() => {
-    let startTime = Date.now();
-
     const updateProgress = () => {
-      const elapsedTime = Date.now() - startTime;
+      const elapsedTime = Date.now() - startTime.current;
       const newProgress = (elapsedTime / PRICE_REFRESH_INTERVAL) * 100;
 
       if (newProgress >= 100) {
-        // Reset progress and fetch new prices
-        setProgress(0);
-        startTime = Date.now();
-        fetchPrices();
+        resetProgress();
       } else {
         setProgress(newProgress);
       }
@@ -117,7 +119,7 @@ const PriceSection = () => {
               <span className="text-gray-400">USD</span>
             </div>
           </div>
-          <div className="relative w-8 h-8">
+          <div className="relative w-8 h-8 cursor-pointer" onClick={resetProgress}>
             <CircularProgress
               variant="determinate"
               value={progress}
