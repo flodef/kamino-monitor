@@ -1,6 +1,6 @@
 import { PublicKey } from '@solana/web3.js';
 
-type Server = 'Kamino' | 'Save';
+type Server = 'Kamino' | 'Save' | 'Drift';
 
 // Markets
 type Market = {

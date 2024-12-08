@@ -25,31 +25,35 @@ export interface LoanStatusResponse {
 
 let connection: Connection | null = null;
 
+// Get connection from connection API
+async function getConnection(rpc: string) {
+  if (connection) return connection;
+
+  const url = await getApiUrl('/api/connection');
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ rpcLabel: rpc }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to get connection from connection API');
+  }
+
+  const data = await response.json();
+  if (!data.rpcEndpoint) {
+    throw new Error('Invalid connection from connection API');
+  }
+
+  return new Connection(data.rpcEndpoint);
+}
+
 async function fetchKaminoLoanStatus(
   rpc: string,
   market: string,
   obligation: string
 ): Promise<LoanStatusResponse> {
-  // Get connection from connection API
-  if (!connection) {
-    const url = await getApiUrl('/api/connection');
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ rpcLabel: rpc }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to get connection from connection API');
-    }
-
-    const data = await response.json();
-    if (!data.rpcEndpoint) {
-      throw new Error('Invalid connection from connection API');
-    }
-
-    connection = new Connection(data.rpcEndpoint);
-  }
+  connection = await getConnection(rpc);
 
   const marketPubkey = new PublicKey(market);
   const obligationPubkey = new PublicKey(obligation);
@@ -214,6 +218,67 @@ async function fetchSaveLoanStatus(
   };
 }
 
+async function fetchDriftLoanStatus(
+  rpc: string,
+  market: string,
+  obligation: string
+): Promise<LoanStatusResponse> {
+  connection = await getConnection(rpc);
+
+  const marketName = 'Drift';
+
+  // const privateKey = getEnv('PK');
+  // const keypair = Keypair.fromSecretKey(new Uint8Array(JSON.parse(privateKey)));
+  // const wallet = new Wallet(keypair);
+
+  // const driftClient = new DriftClient({
+  //   connection,
+  //   wallet,
+  //   env: 'mainnet-beta',
+  // });
+
+  // console.log({ driftClient });
+
+  // await driftClient.subscribe();
+
+  // await driftClient.emulateAccount(new PublicKey('58kZBjjtHShTtXFmygr3ZT8VSU4dH28PanRAdouHbToh'));
+
+  // const user = driftClient.getUser();
+
+  // const symbols = ['SOL', 'JLP', 'USDS'];
+
+  // const spotMarkets = SpotMarkets['mainnet-beta'];
+  // symbols.forEach(symbol => {
+  //   const marketInfo = spotMarkets.find(market => market.symbol === symbol);
+  //   const marketIndex = marketInfo?.marketIndex || 0;
+
+  //   const tokenAmount = user.getTokenAmount(marketIndex);
+
+  //   console.log(
+  //     'symbol',
+  //     symbol,
+  //     'tokenAmount',
+  //     tokenAmount.toNumber(),
+  //     'marketIndex',
+  //     marketIndex
+  //   );
+  // });
+
+  console.log({ market, obligation });
+
+  const amounts: LoanAmounts[] = [];
+
+  return {
+    isUnderwater: false,
+    marketName,
+    timestamp: Date.now(),
+    loanToValue: toRatio(0),
+    limitLtv: toRatio(0),
+    liquidationLtv: toRatio(0),
+    amounts,
+  };
+}
+
 export async function GET(request: Request) {
   try {
     // Get URL parameters
@@ -238,6 +303,9 @@ export async function GET(request: Request) {
         break;
       case 'save':
         loanStatus = await fetchSaveLoanStatus(market, obligation);
+        break;
+      case 'drift':
+        loanStatus = await fetchDriftLoanStatus(rpc, market, obligation);
         break;
       default:
         return NextResponse.json({ error: 'Invalid server specified' }, { status: 400 });
