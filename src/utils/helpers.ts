@@ -150,7 +150,7 @@ export async function executeUserSetupLutsTransactions(
 }
 
 export function toValue(value: Decimal, reserve: KaminoReserve): string {
-  return value.div(reserve.getMintFactor()).toFixed(2);
+  return value.div(reserve.getMintFactor()).toString();
 }
 
 export function toRatio(value: number): string {
